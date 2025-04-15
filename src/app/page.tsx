@@ -4,9 +4,11 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div >
-      <Button>click</Button>
-      <AdminLoginButton/>
+    <div className="p-2" >
+      <div className="">
+        <AdminLoginButton/>
+      </div>
+     
     </div>
   );
 }

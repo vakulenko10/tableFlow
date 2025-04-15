@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
+import { Button } from "./ui/button";
 
 export function AdminLoginButton() {
   const { data: session, status } = useSession();
@@ -11,21 +12,21 @@ export function AdminLoginButton() {
 
   if (!session) {
     return (
-      <button
+      <Button
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
       >
         Admin Login with Google
-      </button>
+      </Button>
     );
   }
 
   return (
-    <button
+    <Button
       onClick={() => signOut({ callbackUrl: "/" })}
-      className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+      variant='destructive'
     >
       Logout ({session.user?.email})
-    </button>
+    </Button>
   );
 }
