@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Table {
+  id         String              @id @default(cuid())
+  label      String
+  x          Int
+  y          Int
+  width      Int
+  height     Int
+  capacity   Int
+  reservedIn ReservationTable[]
+}
+
+model Reservation {
+  id          String              @id @default(cuid())
+  name        String
+  email       String
+  token       String              @unique
+  date        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  status      ReservationStatus   @default(PENDING)
+  tables      ReservationTable[]
+  createdAt   DateTime            @default(now())
+}
+
+model ReservationTable {
+  reservationId String
+  tableId       String
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  table         Table       @relation(fields: [tableId], references: [id])
+
+  @@id([reservationId, tableId])
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
