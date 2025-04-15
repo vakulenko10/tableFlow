@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { randomUUID } from "crypto";
-import { sendConfirmationEmail } from "@/lib/email";
+import { sendConfirmationEmail } from "@/lib/mailer"; // ← use nodemailer-based function
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -13,22 +13,27 @@ export async function POST(req: Request) {
 
   const token = randomUUID();
 
-  const reservation = await prisma.reservation.create({
-    data: {
-      name,
-      email,
-      token,
-      date: new Date(date),
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
-      status: "PENDING",
-      tables: {
-        create: tableIds.map((id: string) => ({ tableId: id })),
+  try {
+    const reservation = await prisma.reservation.create({
+      data: {
+        name,
+        email,
+        token,
+        date: new Date(date),
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        status: "PENDING",
+        tables: {
+          create: tableIds.map((id: string) => ({ tableId: id })),
+        },
       },
-    },
-  });
+    });
 
-  await sendConfirmationEmail(email, token);
+    await sendConfirmationEmail(email, token);
 
-  return NextResponse.json({ success: true, reservationId: reservation.id });
+    return NextResponse.json({ success: true, reservationId: reservation.id });
+  } catch (error) {
+    console.error("Reservation failed:", error);
+    return NextResponse.json({ error: "Reservation failed" }, { status: 500 });
+  }
 }
