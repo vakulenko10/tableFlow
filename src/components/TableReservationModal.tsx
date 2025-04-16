@@ -8,6 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import TableReservationForm from "./TableReservation";
+import { useDispatch } from "react-redux";
+import { setSelectedTableIds } from "@/store/slices/tableSlice";
 
 interface TableReservationModalProps {
   selectedTableId: string | null;
@@ -19,16 +21,24 @@ export default function TableReservationModal({
   onClose,
 }: TableReservationModalProps) {
   const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
+  const dispatch = useDispatch();
 
   // Sync modal open state with selectedTableId
   useEffect(() => {
     setDialogOpen(!!selectedTableId);
-  }, [selectedTableId]);
+
+    // Update Redux store with selected table
+    if (selectedTableId) {
+      dispatch(setSelectedTableIds([selectedTableId]));
+    }
+  }, [selectedTableId, dispatch]);
 
   const handleOpenChange = (isOpen: boolean) => {
     setDialogOpen(isOpen);
-    if (!isOpen && onClose) {
-      onClose(); // Let parent clear selectedTableId
+    if (!isOpen) {
+      if (onClose) {
+        onClose();
+      }
     }
   };
 
@@ -38,9 +48,7 @@ export default function TableReservationModal({
         <DialogHeader>
           <DialogTitle>Reserve Table</DialogTitle>
         </DialogHeader>
-        {selectedTableId && (
-          <TableReservationForm tableIds={[selectedTableId]} />
-        )}
+        <TableReservationForm />
       </DialogContent>
     </Dialog>
   );
