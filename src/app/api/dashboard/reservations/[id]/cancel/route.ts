@@ -3,10 +3,14 @@ import { authConfig } from "@/lib/auth.config";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
+// Use this type instead of raw `{ params: { id: string } }`
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
+export async function POST(req: NextRequest, context: Context) {
   const session = await getServerSession(authConfig);
   const allowedAdmins = (process.env.ADMIN_EMAILS ?? "").split(",");
 
