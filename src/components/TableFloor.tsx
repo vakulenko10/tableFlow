@@ -70,10 +70,10 @@ export default function TableFloor() {
         className="border bg-gray-50"
       >
         {tables.map((table) => {
-          const scaledX = table.x * scale.x;
-          const scaledY = table.y * scale.y;
-          const scaledWidth = table.width * scale.x;
-          const scaledHeight = table.height * scale.y;
+          // const scaledX = table.x * scale.x;
+          // const scaledY = table.y * scale.y;
+          // const scaledWidth = table.width * scale.x;
+          // const scaledHeight = table.height * scale.y;
 
           return (
             <g
