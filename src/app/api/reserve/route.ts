@@ -14,6 +14,31 @@ export async function POST(req: Request) {
   const token = randomUUID();
 
   try {
+    // Check for conflicting reservations
+    const conflictingReservations = await prisma.reservationTable.findMany({
+      where: {
+        tableId: { in: tableIds },
+        reservation: {
+          date: new Date(date),
+          status: { in: ["PENDING", "CONFIRMED"] }, // Adjust depending on your logic
+          OR: [
+            {
+              startTime: { lt: new Date(endTime) },
+              endTime: { gt: new Date(startTime) }
+            },
+          ],
+        },
+      },
+      include: {
+        reservation: true,
+      },
+    });
+
+    if (conflictingReservations.length > 0) {
+      return NextResponse.json({ error: "One or more tables are already reserved for this time." }, { status: 409 });
+    }
+
+    // Proceed with reservation
     const reservation = await prisma.reservation.create({
       data: {
         name,
