@@ -14,7 +14,7 @@ export const authConfig: NextAuthOptions = {
     async signIn({ user }) {
         return allowedAdmins.includes(user.email ?? "");
     },
-    async session({ session, token }) {
+    async session({ session }) {
       return session;
     },
   },

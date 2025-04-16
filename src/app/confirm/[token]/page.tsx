@@ -23,7 +23,7 @@ export default async function ConfirmPage({ params }: ConfirmPageProps) {
   const createdAt = new Date(reservation.createdAt);
   const minutesPassed = (now.getTime() - createdAt.getTime()) / 1000 / 60;
 
-  if (minutesPassed > 15) {
+  if (minutesPassed > 1) {
     // Cancel the reservation if it's still pending
     if (reservation.status === "PENDING") {
       await prisma.reservation.update({
