@@ -1,14 +1,16 @@
+"use client"
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
+ 
+import { useParams } from 'next/navigation'
+ 
 
-
-export default async function ConfirmPage({
-  params,
-}: {
-  params: { token: string };
-}) {
-  const {token} = await params;
-
+export default async function ConfirmPage() {
+  // const {token} = await params;
+  const params  = useParams<{token :string }>()
+  console.log(params)
+  const token = params.token;
+  // const token = params.token;
   const reservation = await prisma.reservation.findUnique({
     where: { token },
   });
