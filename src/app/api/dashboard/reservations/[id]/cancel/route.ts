@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   const session = await getServerSession(authConfig);
   const allowedAdmins = (process.env.ADMIN_EMAILS ?? "").split(",");
@@ -14,8 +14,10 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  const reservationId = context.params.id;
+
   await prisma.reservation.update({
-    where: { id: params.id },
+    where: { id: reservationId },
     data: { status: "CANCELLED" },
   });
 
