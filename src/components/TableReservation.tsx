@@ -101,7 +101,7 @@ export default function TableReservationForm({ tableIds }: { tableIds: string[] 
       </form>
 
       {success && (
-        <p className="text-green-600 mt-4">✅ Reservation request sent! Please check your email to confirm.</p>
+        <p className="text-green-600 mt-4">✅ Reservation request sent! Please check your email to confirm. Check your spam folder. Your confirmation link will be active within 15 minutes, otherwise your reservation will be cancelled</p>
       )}
 
       {error && (
