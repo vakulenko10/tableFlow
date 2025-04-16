@@ -1,36 +1,29 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
-export const dynamic = "force-dynamic";
 
-interface ConfirmPageProps {
-  params: {
-    token: string;
-  };
-}
 
-export default async function ConfirmPage({ params }: ConfirmPageProps) {
-  const token = params.token;
+export default async function ConfirmPage({
+  params,
+}: {
+  params: { token: string };
+}) {
+  const {token} = await params;
 
   const reservation = await prisma.reservation.findUnique({
     where: { token },
   });
 
-  if (!reservation) {
-    return notFound();
-  }
+  if (!reservation) return notFound();
 
   const now = new Date();
   const createdAt = new Date(reservation.createdAt);
   const minutesPassed = (now.getTime() - createdAt.getTime()) / 1000 / 60;
 
-  if (minutesPassed > 1) {
-    // Cancel the reservation if it's still pending
-    if (reservation.status === "PENDING") {
-      await prisma.reservation.update({
-        where: { token },
-        data: { status: "CANCELLED" },
-      });
-    }
+  if (minutesPassed > 15 && reservation.status === "PENDING") {
+    await prisma.reservation.update({
+      where: { token },
+      data: { status: "CANCELLED" },
+    });
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-8">
@@ -42,7 +35,6 @@ export default async function ConfirmPage({ params }: ConfirmPageProps) {
     );
   }
 
-  // If still within 15 minutes and pending, confirm it
   if (reservation.status === "PENDING") {
     await prisma.reservation.update({
       where: { token },
