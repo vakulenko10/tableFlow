@@ -10,9 +10,9 @@ import { useState, useEffect } from "react";
  */
 export default function ConfirmPage() {
 
-  const params = useParams<{ token: string }>();
-  const token = params.token as string;
-
+  // const params = useParams<{ token: string }>();
+  // const token = params.token as string;
+  const token = useParams().token as string;
   const [status, setStatus] = useState<
     "loading" | "confirmed" | "expired" | "error"
   >("loading");
@@ -22,8 +22,12 @@ export default function ConfirmPage() {
     async function confirmReservation() {
       try {
         // POST request to confirmation endpoint with token
-        const response = await fetch(`/api/confirm/${token}`, {
+        const response = await fetch("/api/confirm", {
           method: "POST",
+          body: JSON.stringify({ token }),
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
         const data = await response.json();
