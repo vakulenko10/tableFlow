@@ -1,23 +1,48 @@
-"use client"
+"use client";
 import { AdminLoginButton } from "@/components/AdminLoginButton";
 import TableReservationForm from "@/components/TableReservation";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice";
 
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { increment, decrement } from '@/store/slices/counterSlice';
 export default function Home() {
-  const count = useSelector((state: RootState) => state.counter.value);
+  const { tables, loading } = useSelector((state: RootState) => state.tables);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Fetch tables when component mounts
+    dispatch(fetchTables());
+  }, [dispatch]);
+
+  const selectTableForReservation = (tableId: string) => {
+    dispatch(setSelectedTableIds([tableId]));
+  };
+
   return (
-    <div className="p-2" >
+    <div className="p-2">
       <div className="">
-        <AdminLoginButton/>
-        <TableReservationForm tableIds={["026ce3f5-1fd7-4450-bd90-bd67e74fba23", "13437306-a4f5-4124-8c58-d5d9f6bfbc82"]}/>
-        <p>Count: {count}</p>
-      <button onClick={() => dispatch(increment())}> + </button>
-      <button onClick={() => dispatch(decrement())}> - </button>
+        <AdminLoginButton />
+        <TableReservationForm />
+
+        {loading ? (
+          <p>Loading tables...</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-3 mt-6">
+            {tables
+              .filter((table) => table.capacity > 0)
+              .map((table) => (
+                <button
+                  key={table.id}
+                  className="p-3 border rounded bg-blue-50 hover:bg-blue-100"
+                  onClick={() => selectTableForReservation(table.id)}
+                >
+                  Table {table.label} ({table.capacity} seats)
+                </button>
+              ))}
+          </div>
+        )}
       </div>
-     
     </div>
   );
 }
