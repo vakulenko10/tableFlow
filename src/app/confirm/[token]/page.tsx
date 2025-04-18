@@ -21,7 +21,6 @@ export default function ConfirmPage() {
             "Content-Type": "application/json",
           },
         });
-
         const data = await response.json();
 
         // Update status based on API response
