@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables } from "@/store/slices/tableSlice";
-import useSocketListener from "@/app/hooks/useSocketListener"; // ⬅️ WebSocket listener hook
+import useSocketListener from "@/app/hooks/useSocketListener";
 
 interface TableReservationFormProps {
   suggestedStartTime?: Date | null;
@@ -20,7 +20,7 @@ export default function TableReservationForm({
   minTime,
   maxTime,
 }: TableReservationFormProps = {}) {
-  useSocketListener(); // ⬅️ Activate WebSocket listener on mount
+  useSocketListener();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,7 +31,9 @@ export default function TableReservationForm({
   const [error, setError] = useState("");
 
   const dispatch = useAppDispatch();
-  const { tables, selectedTableIds } = useSelector((state: RootState) => state.tables);
+  const { tables, selectedTableIds } = useSelector(
+    (state: RootState) => state.tables
+  );
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -70,8 +72,7 @@ export default function TableReservationForm({
     }
   }, [date, today]);
 
-  const formatTime = (date: Date) =>
-    date.toTimeString().slice(0, 5); // HH:MM
+  const formatTime = (date: Date) => date.toTimeString().slice(0, 5);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,14 +98,13 @@ export default function TableReservationForm({
       return;
     }
 
-    // ⛔ Валидация времени: с 12:00 до 21:00
     if (minTime && fullStart < minTime) {
       setError("Reservations are only allowed after 12:00");
       return;
     }
 
     if (maxTime && fullEnd > maxTime) {
-      setError("Reservations must end before 21:00");
+      setError("Reservations must end before 22:00");
       return;
     }
 
@@ -210,9 +210,7 @@ export default function TableReservationForm({
 
       {success && (
         <p className="text-green-600 mt-4">
-          ✅ Reservation request sent! Please check your email to confirm. Check
-          your spam folder. Your confirmation link will be active within 15
-          minutes, otherwise your reservation will be cancelled.
+          ✅ Reservation request sent! Please check your email to confirm.
         </p>
       )}
 
