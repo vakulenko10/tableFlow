@@ -44,6 +44,18 @@ export default function TableReservationModal({
           )
         )
       : null;
+  const tableImages: Record<string, string> = {
+    T1: "/images/photo1.jpg",
+    T2: "/images/photo1.jpg",
+    T3: "/images/photo1.jpg",
+    T4: "/images/photo1.jpg",
+    T5: "/images/photo1.jpg",
+    T6: "/images/photo1.jpg",
+    T7: "/images/photo1.jpg",
+    T8: "/images/photo1.jpg",
+    T9: "/images/photo1.jpg",
+    T10: "/images/photo1.jpg",
+  };
 
   // Keep dialog state in sync with selectedTableId prop
   useEffect(() => {
@@ -72,6 +84,19 @@ export default function TableReservationModal({
               ? `Table Reservation #${selectedTable.label} (${selectedTable.capacity} мест)`
               : "Table Reservation"}
           </DialogTitle>
+
+          {/* Превью фото столика — показывается только на мобильных */}
+          {selectedTable?.label && tableImages[selectedTable.label] && (
+            <div className="block sm:hidden mb-4">
+              <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow">
+                <img
+                  src={tableImages[selectedTable.label]}
+                  alt={`Table ${selectedTable.label}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
           {/* Show notification when table is currently reserved */}
           {isTableReserved && nextAvailableTime && (
             <p className="text-sm text-amber-600 mt-1 p-2 bg-amber-50 border border-amber-200 rounded">
