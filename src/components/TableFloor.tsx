@@ -6,12 +6,14 @@ import { RootState } from "@/store"; // Type definition for Redux state
 import { useAppDispatch } from "@/store/hooks"; // Type-safe dispatch hook
 import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice"; // Actions
 import TableReservationModal from "./TableReservationModal"; // Modal for booking tables
+import useSocketListener from "@/app/hooks/useSocketListener";
 
 
 const ORIGINAL_WIDTH = 1000;
 const ORIGINAL_HEIGHT = 800;
 
 export default function TableFloor() {
+   useSocketListener(); 
   const dispatch = useAppDispatch(); // Type-safe dispatch for Redux actions
   const { tables, loading } = useSelector((state: RootState) => state.tables); // Get tables from Redux
 
