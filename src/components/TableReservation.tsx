@@ -127,6 +127,12 @@ export default function TableReservationForm({
       setError("Cannot book a table in the past");
       return;
     }
+    
+    // Prevent start and end times being the same
+    if (fullStart.getTime() === fullEnd.getTime()) {
+      setError("End time must be different from start time");
+      return;
+    }
 
     // Send reservation request to server
     const res = await fetch("/api/reserve", {

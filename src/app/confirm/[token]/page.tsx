@@ -1,17 +1,9 @@
-"use client"; 
+"use client";
 
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
-/**
- * Confirmation Page Component
- * Shown when users click the confirmation link from their email
- * Handles the confirmation process for pending reservations
- */
 export default function ConfirmPage() {
-
-  // const params = useParams<{ token: string }>();
-  // const token = params.token as string;
   const token = useParams().token as string;
   const [status, setStatus] = useState<
     "loading" | "confirmed" | "expired" | "error"
@@ -45,55 +37,71 @@ export default function ConfirmPage() {
     }
 
     confirmReservation();
-  }, [token]); // Re-run if token changes
+  }, [token]);
 
-  // Loading state while API request is in progress
+  // Shared layout classes
+  const pageWrapper =
+    "min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white p-6";
+  const card =
+    "bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center space-y-4";
+  const icon = "text-6xl";
+  const title = "text-2xl font-semibold text-gray-800";
+  const message = "text-gray-600";
+
+  // Loading state
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center p-8">
-        <h1 className="text-3xl font-bold mb-4">⏳ Loading...</h1>
-        <p className="text-lg">
-          Please wait while we confirm your reservation.
-        </p>
+      <div className={pageWrapper}>
+        <div className={card}>
+          <div className={`${icon} text-blue-400 animate-pulse`}>⏳</div>
+          <h1 className={title}>Confirming...</h1>
+          <p className={message}>
+            Please wait while we verify your reservation.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Success state - reservation confirmed
+  // Success state
   if (status === "confirmed") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center p-8">
-        <h1 className="text-3xl font-bold mb-4">✅ Reservation Confirmed!</h1>
-        <p className="text-lg">Thanks for confirming your reservation.</p>
+      <div className={pageWrapper}>
+        <div className={card}>
+          <div className={`${icon} text-green-500`}>✅</div>
+          <h1 className={title}>Reservation Confirmed!</h1>
+          <p className={message}>Thank you! Your table is now booked.</p>
+        </div>
       </div>
     );
   }
 
-  // Expired state - confirmation time window passed
+  // Expired state
   if (status === "expired") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center p-8">
-        <h1 className="text-3xl font-bold mb-4">⏳ Link Expired</h1>
-        <p className="text-lg">
-          Sorry, this confirmation link has expired. Please make a new
-          reservation.
-        </p>
+      <div className={pageWrapper}>
+        <div className={card}>
+          <div className={`${icon} text-yellow-500`}>⌛</div>
+          <h1 className={title}>Link Expired</h1>
+          <p className={message}>
+            This link has expired. Please make a new reservation.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Error state - API error or invalid token
   if (status === "error") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center p-8">
-        <h1 className="text-3xl font-bold mb-4">❌ Error</h1>
-        <p className="text-lg">
-          An error occurred while confirming your reservation. Please try again
-          later.
-        </p>
+      <div className={pageWrapper}>
+        <div className={card}>
+          <div className={`${icon} text-red-500`}>❌</div>
+          <h1 className={title}>Confirmation Error</h1>
+          <p className={message}>An error occurred. Please try again later.</p>
+        </div>
       </div>
     );
   }
-
-  return null; 
+  return null;
 }
+
