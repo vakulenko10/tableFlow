@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import TableReservationForm from "./TableReservation";
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "@/store/hooks"; // Type-safe dispatch hook
-import { setSelectedTableIds } from "@/store/slices/tableSlice"; // Action to update selected tables
+import { useAppDispatch } from "@/store/hooks";
+import { setSelectedTableIds } from "@/store/slices/tableSlice";
 import { RootState } from "@/store";
+import { useNotification } from "@/app/hooks/useNotification";
 
 interface TableReservationModalProps {
   selectedTableId: string | null;
@@ -22,17 +23,15 @@ export default function TableReservationModal({
   selectedTableId,
   onClose,
 }: TableReservationModalProps) {
-  // Track dialog open state, initially based on whether a table is selected
   const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
   const dispatch = useAppDispatch();
   const { tables } = useSelector((state: RootState) => state.tables);
+  const { notify } = useNotification();
 
-  // Get details of the selected table from Redux store
   const selectedTable = selectedTableId
     ? tables.find((t) => t.id === selectedTableId)
     : null;
 
-  // Determine if table is reserved and when it will be available
   const isTableReserved = selectedTable?.reserved || false;
   const nextAvailableTime =
     isTableReserved && selectedTable?.reservations?.length
@@ -44,6 +43,13 @@ export default function TableReservationModal({
           )
         )
       : null;
+
+  const today = new Date();
+  const selectedDateString = today.toISOString().split("T")[0];
+
+  const minTime = new Date(`${selectedDateString}T12:00`);
+  const maxTime = new Date(`${selectedDateString}T22:00`); // ⬅️ Updated to 22:00
+
   const tableImages: Record<string, string> = {
     T1: "/images/photo1.jpg",
     T2: "/images/photo1.jpg",
@@ -57,21 +63,17 @@ export default function TableReservationModal({
     T10: "/images/photo1.jpg",
   };
 
-  // Keep dialog state in sync with selectedTableId prop
   useEffect(() => {
     setDialogOpen(!!selectedTableId);
-
-    // Update Redux store with selected table
     if (selectedTableId) {
       dispatch(setSelectedTableIds([selectedTableId]));
     }
   }, [selectedTableId, dispatch]);
 
-  // Handle dialog open/close events
   const handleOpenChange = (isOpen: boolean) => {
     setDialogOpen(isOpen);
     if (!isOpen && onClose) {
-      onClose(); // Notify parent component when dialog closes
+      onClose();
     }
   };
 
@@ -85,7 +87,6 @@ export default function TableReservationModal({
               : "Table Reservation"}
           </DialogTitle>
 
-          {/* Превью фото столика — показывается только на мобильных */}
           {selectedTable?.label && tableImages[selectedTable.label] && (
             <div className="block sm:hidden mb-4">
               <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow">
@@ -97,7 +98,6 @@ export default function TableReservationModal({
               </div>
             </div>
           )}
-          {/* Show notification when table is currently reserved */}
           {isTableReserved && nextAvailableTime && (
             <p className="text-sm text-amber-600 mt-1 p-2 bg-amber-50 border border-amber-200 rounded">
               ⏰ This table is currently reserved until{" "}
@@ -107,10 +107,19 @@ export default function TableReservationModal({
             </p>
           )}
         </DialogHeader>
-        {/* Pass relevant props to the reservation form */}
+
         <TableReservationForm
           suggestedStartTime={nextAvailableTime}
           isTableReserved={isTableReserved}
+          minTime={minTime}
+          maxTime={maxTime}
+          onSuccess={() => {
+            onClose?.();
+            notify(
+              "A confirmation email has been sent. Please check your inbox.",
+              "success"
+            );
+          }}
         />
       </DialogContent>
     </Dialog>

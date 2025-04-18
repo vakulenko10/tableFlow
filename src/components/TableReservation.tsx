@@ -5,13 +5,15 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables } from "@/store/slices/tableSlice";
-import useSocketListener from "@/app/hooks/useSocketListener"; // ⬅️ WebSocket listener hook
+import useSocketListener from "@/app/hooks/useSocketListener";
+import { useNotification } from "@/app/hooks/useNotification"; // ← added import
 
 interface TableReservationFormProps {
   suggestedStartTime?: Date | null;
   isTableReserved?: boolean;
   minTime?: Date;
   maxTime?: Date;
+  onSuccess?: () => void;
 }
 
 export default function TableReservationForm({
@@ -19,19 +21,22 @@ export default function TableReservationForm({
   isTableReserved = false,
   minTime,
   maxTime,
+  onSuccess,
 }: TableReservationFormProps = {}) {
-  useSocketListener(); // ⬅️ Activate WebSocket listener on mount
+  useSocketListener();
 
+  const { notify } = useNotification(); // ← initialize notificationа
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+
 
   const dispatch = useAppDispatch();
-  const { tables, selectedTableIds } = useSelector((state: RootState) => state.tables);
+  const { tables, selectedTableIds } = useSelector(
+    (state: RootState) => state.tables
+  );
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -70,16 +75,13 @@ export default function TableReservationForm({
     }
   }, [date, today]);
 
-  const formatTime = (date: Date) =>
-    date.toTimeString().slice(0, 5); // HH:MM
+  const formatTime = (date: Date) => date.toTimeString().slice(0, 5);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    setSuccess(false);
 
     if (selectedTableIds.length === 0) {
-      setError("Please select at least one table");
+      notify("Please select at least one table", "error");
       return;
     }
 
@@ -88,29 +90,32 @@ export default function TableReservationForm({
     const now = new Date();
 
     if (isNaN(fullStart.getTime()) || isNaN(fullEnd.getTime())) {
-      setError("Invalid reservation time");
+      notify("Invalid reservation time", "error");
       return;
     }
 
     if (fullStart < now) {
-      setError("Cannot book a table in the past");
-      return;
-    }
-    
-    // Prevent start and end times being the same
-    if (fullStart.getTime() === fullEnd.getTime()) {
-      setError("End time must be different from start time");
+      notify("Cannot book a table in the past", "error");
       return;
     }
 
-    // ⛔ Валидация времени: с 12:00 до 21:00
+    if (fullStart.getTime() === fullEnd.getTime()) {
+      notify("End time must be different from start time", "error");
+      return;
+    }
+
+    if (fullEnd < fullStart) {
+      notify("End time must be after start time", "error");
+      return;
+    }
+
     if (minTime && fullStart < minTime) {
-      setError("Reservations are only allowed after 12:00");
+      notify("Reservations are only allowed after 12:00", "error");
       return;
     }
 
     if (maxTime && fullEnd > maxTime) {
-      setError("Reservations must end before 21:00");
+      notify("Reservations must end before 22:00", "error");
       return;
     }
 
@@ -130,14 +135,17 @@ export default function TableReservationForm({
     const result = await res.json();
 
     if (res.ok) {
-      setSuccess(true);
+      // only trigger the onSuccess callback; the modal will show notification
+      onSuccess?.();
+
+      // reset form fields
       setName("");
       setEmail("");
       setDate("");
       setStartTime("");
       setEndTime("");
     } else {
-      setError(result.error || "Something went wrong");
+      notify(result.error || "Something went wrong", "error");
     }
   }
 
@@ -213,16 +221,6 @@ export default function TableReservationForm({
           Reserve Now
         </button>
       </form>
-
-      {success && (
-        <p className="text-green-600 mt-4">
-          ✅ Reservation request sent! Please check your email to confirm. Check
-          your spam folder. Your confirmation link will be active within 15
-          minutes, otherwise your reservation will be cancelled.
-        </p>
-      )}
-
-      {error && <p className="text-red-600 mt-4">❌ {error}</p>}
     </div>
   );
 }
