@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { useAppDispatch } from "@/store/hooks";
-import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice";
-import TableReservationModal from "./TableReservationModal";
+import { useSelector } from "react-redux"; // Access Redux store state
+import { RootState } from "@/store"; // Type definition for Redux state
+import { useAppDispatch } from "@/store/hooks"; // Type-safe dispatch hook
+import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice"; // Actions
+import TableReservationModal from "./TableReservationModal"; // Modal for booking tables
+import useSocketListener from "@/app/hooks/useSocketListener";
+
 
 const ORIGINAL_WIDTH = 1000;
 const ORIGINAL_HEIGHT = 800;
@@ -25,14 +27,17 @@ const tableImages: Record<string, string> = {
 };
 
 export default function TableFloor() {
-  const dispatch = useAppDispatch();
-  const { tables, loading } = useSelector((state: RootState) => state.tables);
-
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+   useSocketListener(); 
+  const dispatch = useAppDispatch(); // Type-safe dispatch for Redux actions
+  const { tables, loading } = useSelector((state: RootState) => state.tables); // Get tables from Redux
   const [hoveredTableId, setHoveredTableId] = useState<string | null>(null);
-  const [svgHeight, setSvgHeight] = useState(ORIGINAL_HEIGHT);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Component state
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null); // Currently selected table
+  const [svgHeight, setSvgHeight] = useState(ORIGINAL_HEIGHT); // Dynamic height based on table positions
+  const [viewMode, setViewMode] = useState<"map" | "list">("map"); // Toggle between visual map and list view
+  const containerRef = useRef<HTMLDivElement>(null); // Reference to container for dimensions
 
+  // Load tables data when component mounts
   useEffect(() => {
     dispatch(fetchTables());
   }, [dispatch]);

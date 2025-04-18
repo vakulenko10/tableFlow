@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables } from "@/store/slices/tableSlice";
+import useSocketListener from "@/app/hooks/useSocketListener"; // ⬅️ WebSocket listener hook
 
 interface TableReservationFormProps {
   suggestedStartTime?: Date | null;
@@ -19,6 +20,8 @@ export default function TableReservationForm({
   minTime,
   maxTime,
 }: TableReservationFormProps = {}) {
+  useSocketListener(); // ⬅️ Activate WebSocket listener on mount
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = useState("");
@@ -28,9 +31,7 @@ export default function TableReservationForm({
   const [error, setError] = useState("");
 
   const dispatch = useAppDispatch();
-  const { tables, selectedTableIds, loading } = useSelector(
-    (state: RootState) => state.tables
-  );
+  const { tables, selectedTableIds } = useSelector((state: RootState) => state.tables);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -50,6 +51,7 @@ export default function TableReservationForm({
 
       let hours = effectiveTime.getHours();
       let minutes = Math.ceil(effectiveTime.getMinutes() / 15) * 15;
+
       if (minutes === 60) {
         minutes = 0;
         hours += 1;
@@ -208,8 +210,9 @@ export default function TableReservationForm({
 
       {success && (
         <p className="text-green-600 mt-4">
-          ✅ Reservation request sent! Please check your email to confirm. Your
-          confirmation link will be active for 15 minutes.
+          ✅ Reservation request sent! Please check your email to confirm. Check
+          your spam folder. Your confirmation link will be active within 15
+          minutes, otherwise your reservation will be cancelled.
         </p>
       )}
 
