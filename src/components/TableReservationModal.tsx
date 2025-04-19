@@ -23,8 +23,6 @@ export default function TableReservationModal({
   selectedTableId,
   onClose,
 }: TableReservationModalProps) {
-  const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
-  // const dispatch = useAppDispatch();
   const { tables } = useSelector((state: RootState) => state.tables);
   const { notify } = useNotification();
 
@@ -48,7 +46,7 @@ export default function TableReservationModal({
   const selectedDateString = today.toISOString().split("T")[0];
 
   const minTime = new Date(`${selectedDateString}T12:00`);
-  const maxTime = new Date(`${selectedDateString}T22:00`); // ⬅️ Updated to 22:00
+  const maxTime = new Date(`${selectedDateString}T22:00`);
 
   const tableImages: Record<string, string> = {
     T1: "/images/photo1.jpg",
@@ -63,22 +61,8 @@ export default function TableReservationModal({
     T10: "/images/photo1.jpg",
   };
 
-  // useEffect(() => {
-  //   setDialogOpen(!!selectedTableId);
-  //   if (selectedTableId) {
-  //     dispatch(setSelectedTableIds([selectedTableId]));
-  //   }
-  // }, [selectedTableId, dispatch]);
-
-  const handleOpenChange = (isOpen: boolean) => {
-    setDialogOpen(isOpen);
-    if (!isOpen && onClose) {
-      onClose();
-    }
-  };
-
   return (
-    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={!!selectedTableId} onOpenChange={(isOpen) => !isOpen && onClose?.()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -125,3 +109,4 @@ export default function TableReservationModal({
     </Dialog>
   );
 }
+

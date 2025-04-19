@@ -15,6 +15,7 @@ export default function TableItem({ table, onHover }: Props) {
   const [isReserved, setIsReserved] = useState(table.reserved);
   const [modalOpen, setModalOpen] = useState(false);
   const handleTableSelection = () => {  
+    setModalOpen(true)
     dispatch(setSelectedTableIds([table.id]));
   };
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function TableItem({ table, onHover }: Props) {
 
   return (
     <g
-      onClick={() => table.capacity > 0 && setModalOpen(true)}
+      onClick={() => table.capacity > 0 && handleTableSelection()}
       onMouseEnter={() => onHover(table.id)}
       onMouseLeave={() => onHover(null)}
       className="cursor-pointer transition-transform duration-300 ease-in-out hover:-translate-y-1"
