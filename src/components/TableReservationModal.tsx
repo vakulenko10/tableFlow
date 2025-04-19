@@ -90,9 +90,9 @@ export default function TableReservationModal({
               : "Table Reservation"}
           </DialogTitle>
 
-          {selectedTable?.label && tableImages[selectedTable.label] && (
+          {/* {selectedTable?.label && tableImages[selectedTable.label] && (
             <div className="block sm:hidden mb-4">
-              <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow">
+              <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow relative">
                 <Image
                   src={tableImages[selectedTable.label]}
                   alt={`Table ${selectedTable.label}`}
@@ -101,7 +101,7 @@ export default function TableReservationModal({
                 />
               </div>
             </div>
-          )}
+          )} */}
           {isTableReserved && nextAvailableTime && (
             <p className="text-sm text-amber-600 mt-1 p-2 bg-amber-50 border border-amber-200 rounded">
               ⏰ This table is currently reserved until{" "}
