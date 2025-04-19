@@ -13,6 +13,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { setSelectedTableIds } from "@/store/slices/tableSlice";
 import { RootState } from "@/store";
 import { useNotification } from "@/app/hooks/useNotification";
+import useSocketListener from "@/app/hooks/useSocketListener";
 
 interface TableReservationModalProps {
   selectedTableId: string | null;
@@ -23,6 +24,7 @@ export default function TableReservationModal({
   selectedTableId,
   onClose,
 }: TableReservationModalProps) {
+  useSocketListener();
   const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
   const dispatch = useAppDispatch();
   const { tables } = useSelector((state: RootState) => state.tables);
