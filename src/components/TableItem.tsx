@@ -2,22 +2,16 @@
 
 import { Table } from "@/types/Table";
 import { useEffect, useState } from "react";
-import { setSelectedTableIds } from "@/store/slices/tableSlice";
 import { useAppDispatch } from "@/store/hooks";
-import TableReservationModal from "./TableReservationModal";
 interface Props {
   table: Table;
   onHover: (id: string | null) => void;
+  onClick: (id:string) => void
 }
 
-export default function TableItem({ table, onHover }: Props) {
+export default function TableItem({ table, onHover, onClick}: Props) {
  const dispatch = useAppDispatch();
   const [isReserved, setIsReserved] = useState(table.reserved);
-  const [modalOpen, setModalOpen] = useState(false);
-  const handleTableSelection = () => {  
-    setModalOpen(true)
-    dispatch(setSelectedTableIds([table.id]));
-  };
   useEffect(() => {
     const updateReservationStatus = () => {
       const now = new Date();
@@ -60,7 +54,7 @@ export default function TableItem({ table, onHover }: Props) {
 
   return (
     <g
-      onClick={() => table.capacity > 0 && handleTableSelection()}
+      onClick={() => table.capacity > 0 && onClick(table.id)}
       onMouseEnter={() => onHover(table.id)}
       onMouseLeave={() => onHover(null)}
       className="cursor-pointer transition-transform duration-300 ease-in-out hover:-translate-y-1"
@@ -91,12 +85,6 @@ export default function TableItem({ table, onHover }: Props) {
       >
         {`${table.label} (${table.capacity})${isReserved ? " ⏰" : ""}`}
       </text>
-      {modalOpen && (   
-        <TableReservationModal
-          selectedTableId={table.id}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
     </g>
   );
 }

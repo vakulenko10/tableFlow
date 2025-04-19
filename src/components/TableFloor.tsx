@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
-import { fetchTables } from "@/store/slices/tableSlice";
+import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice";
 import useSocketListener from "@/app/hooks/useSocketListener";
 import TableItem from "./TableItem";
 import TableListItem from "./TableListItem";
+import TableReservationModal from "./TableReservationModal";
 
 // ======= ХУК ДЛЯ МОБИЛЬНОГО =========
 function useIsMobile() {
@@ -45,6 +46,7 @@ export default function TableFloor() {
   const dispatch = useAppDispatch();
   const { tables, loading } = useSelector((state: RootState) => state.tables);
   const [hoveredTableId, setHoveredTableId] = useState<string | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [svgHeight, setSvgHeight] = useState(ORIGINAL_HEIGHT);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,10 +67,10 @@ export default function TableFloor() {
     }
   }, [tables]);
 
-  // const handleTableSelection = (tableId: string) => {
-  //   setSelectedTableId(tableId);
-  //   dispatch(setSelectedTableIds([tableId]));
-  // };
+  const handleTableSelection = (tableId: string) => {
+    setSelectedTableId(tableId);
+    dispatch(setSelectedTableIds([tableId]));
+  };
 
   if (loading) {
     return <p className="text-center text-gray-600">Loading tables...</p>;
@@ -157,6 +159,7 @@ export default function TableFloor() {
                 key={table.id}
                 table={table}
                 onHover={setHoveredTableId}
+                onClick={handleTableSelection}
               />
             ))}
 
@@ -196,6 +199,10 @@ export default function TableFloor() {
       </div>
 
      
+      <TableReservationModal
+        selectedTableId={selectedTableId}
+        onClose={() => setSelectedTableId(null)}
+      />
     </div>
   );
 }
