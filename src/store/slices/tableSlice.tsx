@@ -1,24 +1,5 @@
+import { Table } from "@/types/Table";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-export interface Reservation {
-  id: string;
-  startTime: string;
-  endTime: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
-}
-
-export interface Table {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  capacity: number;
-  reserved: boolean; // Shows if the table is currently reserved
-  reservations?: Reservation[]; // Information about all reservations
-}
-
 interface TableState {
   tables: Table[];
   selectedTableIds: string[];

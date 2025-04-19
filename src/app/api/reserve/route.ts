@@ -5,7 +5,7 @@ import { sendConfirmationEmail } from "@/lib/mailer";
 
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
-const OPENING_HOUR = ; // ресторан открывается в 10:00
+const OPENING_HOUR = 10 ; // ресторан открывается в 10:00
 const CLOSING_HOUR = 22; // ресторан закрывается в 22:00
 
 export async function POST(req: Request) {

@@ -10,7 +10,7 @@ import {
 import TableReservationForm from "./TableReservation";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "@/store/hooks";
-import { setSelectedTableIds } from "@/store/slices/tableSlice";
+// import { setSelectedTableIds } from "@/store/slices/tableSlice";
 import { RootState } from "@/store";
 import { useNotification } from "@/app/hooks/useNotification";
 
@@ -24,7 +24,7 @@ export default function TableReservationModal({
   onClose,
 }: TableReservationModalProps) {
   const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const { tables } = useSelector((state: RootState) => state.tables);
   const { notify } = useNotification();
 
@@ -63,12 +63,12 @@ export default function TableReservationModal({
     T10: "/images/photo1.jpg",
   };
 
-  useEffect(() => {
-    setDialogOpen(!!selectedTableId);
-    if (selectedTableId) {
-      dispatch(setSelectedTableIds([selectedTableId]));
-    }
-  }, [selectedTableId, dispatch]);
+  // useEffect(() => {
+  //   setDialogOpen(!!selectedTableId);
+  //   if (selectedTableId) {
+  //     dispatch(setSelectedTableIds([selectedTableId]));
+  //   }
+  // }, [selectedTableId, dispatch]);
 
   const handleOpenChange = (isOpen: boolean) => {
     setDialogOpen(isOpen);
