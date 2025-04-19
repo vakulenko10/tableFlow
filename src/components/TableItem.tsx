@@ -2,7 +2,6 @@
 
 import { Table } from "@/types/Table";
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "@/store/hooks";
 interface Props {
   table: Table;
   onHover: (id: string | null) => void;
@@ -34,7 +33,6 @@ export default function TableItem({ table, onHover, onClick}: Props) {
         const delay = time.getTime() - Date.now();
         return setTimeout(updateReservationStatus, delay);
       });
-
     return () => timers.forEach(clearTimeout);
   }, [table.reservations]);
 
