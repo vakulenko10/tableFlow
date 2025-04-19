@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const token = body.token;
@@ -39,6 +41,53 @@ export async function POST(request: NextRequest) {
       where: { token },
       data: { status: "CONFIRMED" },
     });
+  }
+
+  // 🔥 WebSocket broadcast after confirmation
+  try {
+    const tables = await prisma.table.findMany({
+      include: {
+        reservedIn: {
+          include: {
+            reservation: true,
+          },
+        },
+      },
+    });
+
+    const formattedTables = tables.map((table) => {
+      const reservations = table.reservedIn.map((rt) => rt.reservation);
+      const isReserved = reservations.some((res) =>
+        res.status !== "CANCELLED" &&
+        res.startTime <= now &&
+        res.endTime >= now
+      );
+
+      return {
+        id: table.id,
+        label: table.label,
+        x: table.x,
+        y: table.y,
+        width: table.width,
+        height: table.height,
+        capacity: table.capacity,
+        reserved: isReserved,
+        reservations: reservations.map((res) => ({
+          id: res.id,
+          startTime: res.startTime,
+          endTime: res.endTime,
+          status: res.status,
+        })),
+      };
+    });
+
+    await fetch(`${SOCKET_URL}/broadcast`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formattedTables),
+    });
+  } catch (error) {
+    console.warn("WebSocket update failed:", error);
   }
 
   return new Response(JSON.stringify({ status: "confirmed" }), { status: 200 });
