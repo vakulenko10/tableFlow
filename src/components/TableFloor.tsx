@@ -5,8 +5,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice";
-import TableReservationModal from "./TableReservationModal";
 import useSocketListener from "@/app/hooks/useSocketListener";
+import TableItem from "./TableItem";
+import TableListItem from "./TableListItem";
+import TableReservationModal from "./TableReservationModal";
 
 // ======= ХУК ДЛЯ МОБИЛЬНОГО =========
 function useIsMobile() {
@@ -50,9 +52,13 @@ export default function TableFloor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile(); // ⬅️ Новый хук
 
+
+
   useEffect(() => {
     dispatch(fetchTables());
   }, [dispatch]);
+   
+  console.log("tables: ",tables)
 
   useEffect(() => {
     if (tables.length > 0) {
@@ -147,79 +153,15 @@ export default function TableFloor() {
               height={svgHeight}
               fill="url(#woodTexture)"
             />
-
-            {tables.map((table) => {
-              const isTable = table.capacity > 0;
-              const isReserved = table.reserved;
-              const fillColor = isReserved
-                ? "#EF4444"
-                : isTable
-                ? "#3B82F6"
-                : "#a78bfa";
-
-              const nextAvailableTime =
-                table.reservations && table.reservations.length > 0
-                  ? new Date(
-                      Math.max(
-                        ...table.reservations.map((r) =>
-                          new Date(r.endTime).getTime()
-                        )
-                      )
-                    )
-                  : null;
-
-              return (
-                <g
-                  key={table.id}
-                  onClick={() => isTable && handleTableSelection(table.id)}
-                  onMouseEnter={() => setHoveredTableId(table.id)}
-                  onMouseLeave={() => setHoveredTableId(null)}
-                  className={
-                    isTable
-                      ? "cursor-pointer transition-transform duration-300 ease-in-out hover:-translate-y-1"
-                      : "cursor-default"
-                  }
-                >
-                  <title>
-                    {isTable
-                      ? `Table ${table.label} — ${table.capacity} people${
-                          isReserved
-                            ? ` (Reserved until ${nextAvailableTime?.toLocaleTimeString()})`
-                            : ""
-                        }`
-                      : `Area: ${table.label}`}
-                  </title>
-
-                  <rect
-                    x={table.x}
-                    y={table.y}
-                    width={table.width}
-                    height={table.height}
-                    fill={fillColor}
-                    stroke="#1D4ED8"
-                    strokeWidth={2}
-                    rx={6}
-                    ry={6}
-                  />
-
-                  <text
-                    x={table.x + table.width / 2}
-                    y={table.y + table.height / 2}
-                    dominantBaseline="middle"
-                    textAnchor="middle"
-                    fontSize="12"
-                    fill="white"
-                    pointerEvents="none"
-                  >
-                    {isTable
-                      ? `${table.label} (${table.capacity})${
-                          isReserved ? " ⏰" : ""
-                        }`
-                      : table.label}
-                  </text>
-                </g>
-              );
-            })}
+            
+            {tables.map((table) => (
+              <TableItem
+                key={table.id}
+                table={table}
+                onHover={setHoveredTableId}
+                onClick={handleTableSelection}
+              />
+            ))}
 
             {hoveredTable &&
               hoveredTableId &&
@@ -244,67 +186,20 @@ export default function TableFloor() {
 
         {(viewMode === "list" || isMobile) && (
           <div className="w-full max-w-[700px] mx-auto space-y-2 mt-6">
-            {tables
-              .filter((t) => t.capacity > 0)
-              .map((table) => {
-                const nextAvailableTime =
-                  table.reserved &&
-                  table.reservations &&
-                  table.reservations.length > 0
-                    ? new Date(
-                        Math.max(
-                          ...table.reservations.map((r) =>
-                            new Date(r.endTime).getTime()
-                          )
-                        )
-                      )
-                    : null;
-
-                return (
-                  <div
-                    key={table.id}
-                    onClick={() => handleTableSelection(table.id)}
-                    className={`flex justify-between items-center p-3 rounded border cursor-pointer transition hover:shadow-md ${
-                      table.reserved
-                        ? "bg-amber-50 border-amber-300 text-amber-800"
-                        : "bg-blue-50 border-blue-200 text-blue-800"
-                    }`}
-                  >
-                    <div>
-                      <strong>Table {table.label}</strong> — {table.capacity}{" "}
-                      seats
-                      {table.reserved && nextAvailableTime && (
-                        <div className="block text-sm mt-1">
-                          <span className="font-medium text-red-600">
-                            Reserved until{" "}
-                            {nextAvailableTime.toLocaleTimeString()}
-                          </span>
-                          <span className="block text-gray-600">
-                            Click to book for a later time
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-sm font-medium flex items-center gap-1">
-                      {table.reserved ? (
-                        <>
-                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>{" "}
-                          Reserved
-                        </>
-                      ) : (
-                        <>
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>{" "}
-                          Available
-                        </>
-                      )}
-                    </span>
-                  </div>
-                );
-              })}
+           {tables
+  .filter((t) => t.capacity > 0)
+  .map((table) => (
+    <TableListItem
+      key={table.id}
+      table={table}
+      onClick={handleTableSelection}
+    />
+))}
           </div>
         )}
       </div>
 
+     
       <TableReservationModal
         selectedTableId={selectedTableId}
         onClose={() => setSelectedTableId(null)}

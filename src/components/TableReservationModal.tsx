@@ -48,7 +48,7 @@ export default function TableReservationModal({
   const selectedDateString = today.toISOString().split("T")[0];
 
   const minTime = new Date(`${selectedDateString}T12:00`);
-  const maxTime = new Date(`${selectedDateString}T22:00`); // ⬅️ Updated to 22:00
+  const maxTime = new Date(`${selectedDateString}T24:00`); // ⬅️ Updated to 22:00
 
   const tableImages: Record<string, string> = {
     T1: "/images/photo1.jpg",
