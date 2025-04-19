@@ -192,6 +192,7 @@ export default function TableFloor() {
     <TableListItem
       key={table.id}
       table={table}
+      onClick={handleTableSelection}
     />
 ))}
           </div>

@@ -2,20 +2,14 @@
 
 import { Table } from "@/types/Table";
 import { useEffect, useState } from "react";
-import { setSelectedTableIds } from "@/store/slices/tableSlice";
-import { useAppDispatch } from "@/store/hooks";
-import TableReservationModal from "./TableReservationModal";
 
 interface Props {
   table: Table;
+  onClick: (id:string) => void;
 }
 
-export default function TableListItem({ table }: Props) {
-    const dispatch = useAppDispatch();
+export default function TableListItem({ table , onClick}: Props) {
   const [isReserved, setIsReserved] = useState(table.reserved);
-  const handleTableSelection = () => {
-    dispatch(setSelectedTableIds([table.id]));
-  };
   useEffect(() => {
     const updateReservationStatus = () => {
       const now = new Date();
@@ -52,7 +46,7 @@ export default function TableListItem({ table }: Props) {
 
   return (
     <div
-      onClick={() => handleTableSelection()}
+      onClick={() => table.capacity > 0 && onClick(table.id)}
       className={`flex justify-between items-center p-3 rounded border cursor-pointer transition hover:shadow-md ${
         isReserved
           ? "bg-amber-50 border-amber-300 text-amber-800"
@@ -76,9 +70,6 @@ export default function TableListItem({ table }: Props) {
         <span className={`w-2 h-2 rounded-full ${isReserved ? "bg-red-500" : "bg-green-500"}`} />
         {isReserved ? "Reserved" : "Available"}
       </span>
-       <TableReservationModal
-              selectedTableId={table.id}
-            />
     </div>
   );
 }

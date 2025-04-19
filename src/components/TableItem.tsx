@@ -10,7 +10,6 @@ interface Props {
 }
 
 export default function TableItem({ table, onHover, onClick}: Props) {
- const dispatch = useAppDispatch();
   const [isReserved, setIsReserved] = useState(table.reserved);
   useEffect(() => {
     const updateReservationStatus = () => {
