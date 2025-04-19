@@ -3,10 +3,32 @@ import { prisma } from "@/lib/db";
 import { randomUUID } from "crypto";
 import { sendConfirmationEmail } from "@/lib/mailer";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+const OPENING_HOUR = ; // ресторан открывается в 10:00
+const CLOSING_HOUR = 22; // ресторан закрывается в 22:00
+
 export async function POST(req: Request) {
   const body = await req.json();
   const { name, email, date, startTime, endTime, tableIds } = body;
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+
+  const opening = new Date(start);
+  opening.setHours(OPENING_HOUR, 0, 0, 0);
+
+  const closing = new Date(end);
+  closing.setHours(CLOSING_HOUR, 0, 0, 0);
+
+  if (start < opening || end > closing) {
+    return NextResponse.json(
+      {
+        error:
+          "Reservation must be within restaurant opening hours (10:00–22:00).",
+      },
+      { status: 400 }
+    );
+  }
 
   if (!name || !email || !date || !startTime || !endTime || !tableIds?.length) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
