@@ -9,6 +9,7 @@ import useSocketListener from "@/app/hooks/useSocketListener";
 import TableItem from "./TableItem";
 import TableListItem from "./TableListItem";
 import TableReservationModal from "./TableReservationModal";
+import Image from "next/image";
 
 // ======= ХУК ДЛЯ МОБИЛЬНОГО =========
 function useIsMobile() {
@@ -173,10 +174,11 @@ export default function TableFloor() {
                   height={200}
                 >
                   <div className="w-full h-full flex items-center justify-center bg-white border border-gray-300 rounded shadow-md overflow-hidden">
-                    <img
+                    <Image
                       src={tableImages[hoveredTable.label]}
                       alt={`Table ${hoveredTable.label}`}
                       className="w-full h-full object-cover"
+                      fill
                     />
                   </div>
                 </foreignObject>

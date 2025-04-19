@@ -35,7 +35,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchReservations() {
       const query = selectedDate ? `?date=${selectedDate}` : "";
-      const res = await fetch(`/api/reservation${query}`);
+      const res = await fetch(`/api/dashboard/reservations${query}`);
       const data = await res.json();
       setReservations(data);
     }

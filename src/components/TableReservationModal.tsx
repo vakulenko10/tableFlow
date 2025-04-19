@@ -14,6 +14,7 @@ import { setSelectedTableIds } from "@/store/slices/tableSlice";
 import { RootState } from "@/store";
 import { useNotification } from "@/app/hooks/useNotification";
 import useSocketListener from "@/app/hooks/useSocketListener";
+import Image from "next/image";
 
 interface TableReservationModalProps {
   selectedTableId: string | null;
@@ -92,10 +93,11 @@ export default function TableReservationModal({
           {selectedTable?.label && tableImages[selectedTable.label] && (
             <div className="block sm:hidden mb-4">
               <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow">
-                <img
+                <Image
                   src={tableImages[selectedTable.label]}
                   alt={`Table ${selectedTable.label}`}
                   className="w-full h-full object-cover"
+                  fill
                 />
               </div>
             </div>
