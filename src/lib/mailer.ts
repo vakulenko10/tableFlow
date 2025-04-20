@@ -87,3 +87,62 @@ export async function sendConfirmationEmail(email: string, token: string) {
     throw new Error("Email send failed");
   }
 }
+
+
+export async function sendCancellationEmail(email: string, reservationId: string) {
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+    include: {
+      tables: {
+        include: { table: true },
+      },
+    },
+  });
+
+  if (!reservation) {
+    throw new Error("Reservation not found for cancellation email.");
+  }
+
+  const tableLabels = reservation.tables.map((rt) => rt.table.label).join(", ");
+  const date = reservation.date.toISOString().split("T")[0];
+  const start = new Date(reservation.startTime).toLocaleTimeString();
+  const end = new Date(reservation.endTime).toLocaleTimeString();
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #f6f9fc; padding: 40px;">
+      <table width="100%" style="max-width:600px; margin:auto; background:#fff; border-radius:8px; padding:30px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+        <tr><td style="text-align:center;">
+          <h2 style="color:#d9534f;">Hello, ${reservation.name}</h2>
+          <p style="font-size:16px; color:#555;">
+            We're writing to inform you that your reservation has been <strong style="color:#d9534f;">cancelled</strong>.
+          </p>
+          <ul style="text-align:left; color:#555; font-size:14px; line-height:1.4; margin: 20px 0;">
+            <li><strong>Date:</strong> ${date}</li>
+            <li><strong>Time:</strong> ${start} – ${end}</li>
+            <li><strong>Table(s):</strong> ${tableLabels}</li>
+            <li><strong>Status:</strong> CANCELLED</li>
+          </ul>
+          <p style="font-size:15px; color:#777;">If this was a mistake or you need help, feel free to contact us directly.</p>
+          <hr style="margin-top:40px; border:none; border-top:1px solid #eee;">
+          <p style="font-size:12px; color:#aaa;">
+            This email was sent to ${email}. If you didn’t request this change, please respond on that email directly or call us by this number +48 999 999 999
+        </td></tr>
+      </table>
+    </div>
+  `;
+
+  try {
+    console.log(`Sending cancellation email to ${email}`);
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Your Reservation Has Been Cancelled",
+      html,
+    });
+
+    console.log("Cancellation email sent:", info.messageId);
+  } catch (error) {
+    console.error("Failed to send cancellation email:", error);
+    throw new Error("Cancellation email failed");
+  }
+}
