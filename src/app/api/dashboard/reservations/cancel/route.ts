@@ -1,10 +1,11 @@
+// route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/db";
 import { sendCancellationEmail } from "@/lib/mailer";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request) {
   const session = await getServerSession(authConfig);
   const allowedAdmins = (process.env.ADMIN_EMAILS ?? "").split(",");
 
@@ -13,8 +14,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   try {
+    const body = await req.json();
+    const id = body?.id;
+
+    if (!id) {
+      return NextResponse.json({ error: "Reservation ID is required" }, { status: 400 });
+    }
+
     const reservation = await prisma.reservation.update({
-      where: { id: params.id },
+      where: { id },
       data: { status: "CANCELLED" },
     });
 

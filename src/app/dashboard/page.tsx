@@ -77,7 +77,12 @@ export default function DashboardPage() {
   };
 
   const cancelReservation = async (id: string) => {
-    const res = await fetch(`/api/dashboard/reservations/${id}/cancel`, { method: "PATCH" });
+    const res = await fetch(`/api/dashboard/reservations/cancel`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  
     if (res.ok) {
       notify("Reservation cancelled", "success");
       setReservations((prev) =>
@@ -88,7 +93,6 @@ export default function DashboardPage() {
     }
     closeModal();
   };
-
   const updateReservation = async () => {
     if (!selectedReservation) return;
     const res = await fetch(`/api/dashboard/reservations?id=${selectedReservation.id}`, {
