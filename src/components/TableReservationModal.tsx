@@ -66,6 +66,16 @@ export default function TableReservationModal({
     (r) => new Date(r.startTime) > now
   );
 
+  // Find the next reservation that starts after currentReservation ends
+  let afterCurrent: typeof nextReservation | undefined = undefined;
+  if (currentReservation) {
+    afterCurrent = reservationsForDate.find(
+      (r) =>
+        new Date(r.startTime).getTime() >=
+        new Date(currentReservation.endTime).getTime()
+    );
+  }
+
   const minTime = new Date(`${selectedDateString}T12:00`);
   const maxTime = new Date(`${selectedDateString}T24:00`); // ⬅️ Updated to 22:00
 
@@ -120,14 +130,26 @@ export default function TableReservationModal({
           )} */}
 
           {/* Show info about current or next reservation */}
-          {currentReservation ? (
-            // The table is currently reserved — show until what time
-            <p className="text-sm text-amber-600 mt-1 p-2 bg-amber-50 border border-amber-200 rounded">
-              ⏰ This table is reserved until{" "}
-              {new Date(currentReservation.endTime).toLocaleTimeString()} on{" "}
-              {selectedDate}. You can book it starting from this time.
-            </p>
-          ) : nextReservation ? (
+          {currentReservation && (
+            <>
+              {/* The table is currently reserved — show until what time */}
+              <p className="text-sm text-amber-600 mt-1 p-2 bg-amber-50 border border-amber-200 rounded">
+                ⏰ This table is reserved until{" "}
+                {new Date(currentReservation.endTime).toLocaleTimeString()} on{" "}
+                {selectedDate}. You can book it starting from this time.
+              </p>
+              {/* If there is a next reservation after current, show it */}
+              {afterCurrent && (
+                <p className="text-sm text-blue-600 mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
+                  ℹ️ Next reservation:{" "}
+                  {new Date(afterCurrent.startTime).toLocaleTimeString()}–
+                  {new Date(afterCurrent.endTime).toLocaleTimeString()} on{" "}
+                  {selectedDate}
+                </p>
+              )}
+            </>
+          )}
+          {!currentReservation && nextReservation && (
             // The table is free, but there is a future reservation — show when the next one is
             <p className="text-sm text-blue-600 mt-1 p-2 bg-blue-50 border border-blue-200 rounded">
               ℹ️ Next reservation:{" "}
@@ -135,7 +157,7 @@ export default function TableReservationModal({
               {new Date(nextReservation.endTime).toLocaleTimeString()} on{" "}
               {selectedDate}
             </p>
-          ) : null}
+          )}
         </DialogHeader>
 
         <TableReservationForm
