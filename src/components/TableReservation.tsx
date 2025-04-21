@@ -8,11 +8,15 @@ import { fetchTables } from "@/store/slices/tableSlice";
 import useSocketListener from "@/app/hooks/useSocketListener";
 import { useNotification } from "@/app/hooks/useNotification"; // ← added import
 
+// For testing: allow any minutes (true = any, false = normal behavior)
+const TEST_ALLOW_ANY_TIME = false;
+
 interface TableReservationFormProps {
   suggestedStartTime?: Date | null;
   isTableReserved?: boolean;
   minTime?: Date;
   maxTime?: Date;
+  selectedDate?: string;
   onSuccess?: () => void;
 }
 
@@ -21,17 +25,17 @@ export default function TableReservationForm({
   isTableReserved = false,
   minTime,
   maxTime,
+  selectedDate,
   onSuccess,
 }: TableReservationFormProps = {}) {
   useSocketListener();
 
-  const { notify } = useNotification(); // ← initialize notificationа
+  const { notify } = useNotification();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(selectedDate || "");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-
 
   const dispatch = useAppDispatch();
   const { tables, selectedTableIds } = useSelector(
@@ -74,6 +78,13 @@ export default function TableReservationForm({
       setDate(today);
     }
   }, [date, today]);
+
+  useEffect(() => {
+    // If selectedDate changed from outside, update local state
+    if (selectedDate && selectedDate !== date) {
+      setDate(selectedDate);
+    }
+  }, [selectedDate, date]);
 
   const formatTime = (date: Date) => date.toTimeString().slice(0, 5);
 
@@ -200,6 +211,23 @@ export default function TableReservationForm({
           className="w-full border rounded p-2"
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
+          // Rounding only if test mode is off
+          onBlur={(e) => {
+            if (!TEST_ALLOW_ANY_TIME) {
+              const [h, m] = e.target.value.split(":").map(Number);
+              let minutes = Math.round(m / 15) * 15;
+              let hours = h;
+              if (minutes === 60) {
+                minutes = 0;
+                hours += 1;
+              }
+              setStartTime(
+                `${hours.toString().padStart(2, "0")}:${minutes
+                  .toString()
+                  .padStart(2, "0")}`
+              );
+            }
+          }}
           min={minTime ? formatTime(minTime) : undefined}
           max={maxTime ? formatTime(maxTime) : undefined}
           required
@@ -209,6 +237,22 @@ export default function TableReservationForm({
           className="w-full border rounded p-2"
           value={endTime}
           onChange={(e) => setEndTime(e.target.value)}
+          onBlur={(e) => {
+            if (!TEST_ALLOW_ANY_TIME) {
+              const [h, m] = e.target.value.split(":").map(Number);
+              let minutes = Math.round(m / 15) * 15;
+              let hours = h;
+              if (minutes === 60) {
+                minutes = 0;
+                hours += 1;
+              }
+              setEndTime(
+                `${hours.toString().padStart(2, "0")}:${minutes
+                  .toString()
+                  .padStart(2, "0")}`
+              );
+            }
+          }}
           min={minTime ? formatTime(minTime) : undefined}
           max={maxTime ? formatTime(maxTime) : undefined}
           required
