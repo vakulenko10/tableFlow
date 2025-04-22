@@ -14,7 +14,7 @@ export async function GET() {
       reservedIn: {
         where: {
           reservation: {
-            status: "CONFIRMED",
+            status: { in: ["PENDING", "CONFIRMED"] },
             OR: [
               {
                 startTime: { lte: now },
@@ -45,6 +45,7 @@ export async function GET() {
       id: rt.reservation.id,
       startTime: rt.reservation.startTime,
       endTime: rt.reservation.endTime,
+      createdAt: rt.reservation.createdAt,
       status: rt.reservation.status,
     }));
 

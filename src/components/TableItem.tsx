@@ -2,45 +2,66 @@
 
 import { Table } from "@/types/Table";
 import { useEffect, useState } from "react";
+
 interface Props {
   table: Table;
   onHover: (id: string | null) => void;
-  onClick: (id:string) => void
+  onClick: (id: string) => void;
 }
 
-export default function TableItem({ table, onHover, onClick}: Props) {
-  const [isReserved, setIsReserved] = useState(table.reserved);
+export default function TableItem({ table, onHover, onClick }: Props) {
+  const [status, setStatus] = useState<
+    "reserved" | "recentPending" | "free"
+  >("free");
+
   useEffect(() => {
-    const updateReservationStatus = () => {
+    const updateStatus = () => {
       const now = new Date();
-      const active = table.reservations.some(
+      const hasActiveConfirmed = table.reservations.some(
         (r) =>
-          new Date(r.startTime) <= now && new Date(r.endTime) > now
+          r.status === "CONFIRMED" &&
+          new Date(r.startTime) <= now &&
+          new Date(r.endTime) > now
       );
-      setIsReserved(active);
+
+      const hasRecentPending = table.reservations.some((r) => {
+        if (r.status !== "PENDING") return false;
+        const created = new Date(r.createdAt);
+        const diffInMinutes = (now.getTime() - created.getTime()) / 60000;
+        return diffInMinutes <= 15;
+      });
+
+      if (hasActiveConfirmed) setStatus("reserved");
+      else if (hasRecentPending) setStatus("recentPending");
+      else setStatus("free");
     };
 
-    updateReservationStatus(); // run on mount
+    updateStatus();
 
-    const times = table.reservations.flatMap((r) => [
-      new Date(r.startTime),
-      new Date(r.endTime),
-    ]);
+    const timers = table.reservations.flatMap((r) => {
+      const times = [
+        new Date(r.startTime),
+        new Date(r.endTime),
+        new Date(new Date(r.createdAt).getTime() + 15 * 60 * 1000), // pending window end
+      ];
+      return times
+        .filter((t) => t > new Date())
+        .map((t) =>
+          setTimeout(updateStatus, t.getTime() - Date.now())
+        );
+    });
 
-    const timers = times
-      .filter((time) => time > new Date())
-      .map((time) => {
-        const delay = time.getTime() - Date.now();
-        return setTimeout(updateReservationStatus, delay);
-      });
     return () => timers.forEach(clearTimeout);
   }, [table.reservations]);
 
-  const fillColor = isReserved
-    ? "#EF4444"
-    : table.capacity > 0
-    ? "#3B82F6"
-    : "#a78bfa";
+  const fillColor =
+    status === "reserved"
+      ? "#EF4444" // red
+      : status === "recentPending"
+      ? "#F97316" // orange
+      : table.capacity > 0
+      ? "#3B82F6" // blue
+      : "#a78bfa"; // purple
 
   const nextAvailableTime =
     table.reservations.length > 0
@@ -58,8 +79,11 @@ export default function TableItem({ table, onHover, onClick}: Props) {
     >
       <title>
         Table {table.label} — {table.capacity} people
-        {isReserved ? ` (Reserved until ${nextAvailableTime?.toLocaleTimeString()})` : ""}
+        {status === "reserved" &&
+          ` (Reserved until ${nextAvailableTime?.toLocaleTimeString()})`}
+        {status === "recentPending" && ` (Pending - just created)`}
       </title>
+
       <rect
         x={table.x}
         y={table.y}
@@ -71,6 +95,7 @@ export default function TableItem({ table, onHover, onClick}: Props) {
         rx={6}
         ry={6}
       />
+
       <text
         x={table.x + table.width / 2}
         y={table.y + table.height / 2}
@@ -80,7 +105,9 @@ export default function TableItem({ table, onHover, onClick}: Props) {
         fill="white"
         pointerEvents="none"
       >
-        {`${table.label} (${table.capacity})${isReserved ? " ⏰" : ""}`}
+        {`${table.label} (${table.capacity})`}
+        {status === "reserved" && " ⏰"}
+        {status === "recentPending" && " ⏳"}
       </text>
     </g>
   );
