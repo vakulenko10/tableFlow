@@ -82,7 +82,7 @@ export default function TableReservationModal({
 
   return (
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-[600px] w-[95vw] p-4 rounded-lg">
         <DialogHeader>
           <DialogTitle>
             {selectedTable
@@ -90,18 +90,18 @@ export default function TableReservationModal({
               : "Table Reservation"}
           </DialogTitle>
 
-          {/* {selectedTable?.label && tableImages[selectedTable.label] && (
-            <div className="block sm:hidden mb-4">
-              <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow relative">
-                <Image
-                  src={tableImages[selectedTable.label]}
-                  alt={`Table ${selectedTable.label}`}
-                  className="w-full h-full object-cover"
-                  fill
-                />
-              </div>
-            </div>
-          )} */}
+              {selectedTable?.label && tableImages[selectedTable.label] && (
+                <div className="block sm:hidden mb-4">
+                  <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow relative">
+                    <Image
+                      src={tableImages[selectedTable.label]}
+                      alt={`Table ${selectedTable.label}`}
+                      className="w-full h-full object-cover"
+                      fill
+                    />
+                  </div>
+                </div>
+              )}
           {isTableReserved && nextAvailableTime && (
             <p className="text-sm text-amber-600 mt-1 p-2 bg-amber-50 border border-amber-200 rounded">
               ⏰ This table is currently reserved until{" "}

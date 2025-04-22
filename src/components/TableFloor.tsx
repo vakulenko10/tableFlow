@@ -53,13 +53,11 @@ export default function TableFloor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile(); // ⬅️ Новый хук
 
-
-
   useEffect(() => {
     dispatch(fetchTables());
   }, [dispatch]);
-   
-  console.log("tables: ",tables)
+
+  console.log("tables: ", tables);
 
   useEffect(() => {
     if (tables.length > 0) {
@@ -154,7 +152,7 @@ export default function TableFloor() {
               height={svgHeight}
               fill="url(#woodTexture)"
             />
-            
+
             {tables.map((table) => (
               <TableItem
                 key={table.id}
@@ -188,20 +186,19 @@ export default function TableFloor() {
 
         {(viewMode === "list" || isMobile) && (
           <div className="w-full max-w-[700px] mx-auto space-y-2 mt-6">
-           {tables
-  .filter((t) => t.capacity > 0)
-  .map((table) => (
-    <TableListItem
-      key={table.id}
-      table={table}
-      onClick={handleTableSelection}
-    />
-))}
+            {tables
+              .filter((t) => t.capacity > 0)
+              .map((table) => (
+                <TableListItem
+                  key={table.id}
+                  table={table}
+                  onClick={handleTableSelection}
+                />
+              ))}
           </div>
         )}
       </div>
 
-     
       <TableReservationModal
         selectedTableId={selectedTableId}
         onClose={() => setSelectedTableId(null)}
