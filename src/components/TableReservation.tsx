@@ -6,43 +6,31 @@ import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables } from "@/store/slices/tableSlice";
 import useSocketListener from "@/app/hooks/useSocketListener";
-import { useNotification } from "@/app/hooks/useNotification"; // ← added import
-
-// For testing: allow any minutes (true = any, false = normal behavior)
-const TEST_ALLOW_ANY_TIME = false;
+import { useNotification } from "@/app/hooks/useNotification";
 
 interface TableReservationFormProps {
-  suggestedStartTime?: Date | null;
-  isTableReserved?: boolean;
-  minTime?: Date;
-  maxTime?: Date;
   selectedDate?: string;
   onSuccess?: () => void;
 }
 
 export default function TableReservationForm({
-  suggestedStartTime = null,
-  isTableReserved = false,
-  minTime,
-  maxTime,
   selectedDate,
   onSuccess,
-}: TableReservationFormProps = {}) {
+}: TableReservationFormProps) {
   useSocketListener();
 
-  const { notify } = useNotification();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [date, setDate] = useState(selectedDate || "");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-
   const dispatch = useAppDispatch();
+  const { notify } = useNotification();
   const { tables, selectedTableIds } = useSelector(
     (state: RootState) => state.tables
   );
 
   const today = new Date().toISOString().split("T")[0];
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [date, setDate] = useState(selectedDate || today);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
 
   useEffect(() => {
     if (tables.length === 0) {
@@ -51,114 +39,65 @@ export default function TableReservationForm({
   }, [dispatch, tables.length]);
 
   useEffect(() => {
-    if (suggestedStartTime && isTableReserved) {
-      const suggestedDate = suggestedStartTime.toISOString().split("T")[0];
-      setDate(suggestedDate);
-
-      const now = new Date();
-      const effectiveTime = suggestedStartTime < now ? now : suggestedStartTime;
-
-      let hours = effectiveTime.getHours();
-      let minutes = Math.ceil(effectiveTime.getMinutes() / 15) * 15;
-
-      if (minutes === 60) {
-        minutes = 0;
-        hours += 1;
-      }
-
-      const startTimeString = `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-      setStartTime(startTimeString);
-    }
-  }, [suggestedStartTime, isTableReserved]);
-
-  useEffect(() => {
-    if (!date) {
-      setDate(today);
-    }
-  }, [date, today]);
-
-  useEffect(() => {
-    // If selectedDate changed from outside, update local state
-    if (selectedDate && selectedDate !== date) {
+    if (selectedDate) {
       setDate(selectedDate);
     }
-  }, [selectedDate, date]);
+  }, [selectedDate]);
 
-  const formatTime = (date: Date) => date.toTimeString().slice(0, 5);
-
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (selectedTableIds.length === 0) {
       notify("Please select at least one table", "error");
       return;
     }
 
-    const fullStart = new Date(`${date}T${startTime}`);
-    const fullEnd = new Date(`${date}T${endTime}`);
+    const start = new Date(`${date}T${startTime}`);
+    const end = new Date(`${date}T${endTime}`);
     const now = new Date();
 
-    if (isNaN(fullStart.getTime()) || isNaN(fullEnd.getTime())) {
-      notify("Invalid reservation time", "error");
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      notify("Invalid time format", "error");
       return;
     }
 
-    if (fullStart < now) {
-      notify("Cannot book a table in the past", "error");
+    if (start < now) {
+      notify("Cannot reserve time in the past", "error");
       return;
     }
 
-    if (fullStart.getTime() === fullEnd.getTime()) {
-      notify("End time must be different from start time", "error");
-      return;
-    }
-
-    if (fullEnd < fullStart) {
+    if (end <= start) {
       notify("End time must be after start time", "error");
       return;
     }
 
-    if (minTime && fullStart < minTime) {
-      notify("Reservations are only allowed after 12:00", "error");
-      return;
-    }
-
-    if (maxTime && fullEnd > maxTime) {
-      notify("Reservations must end before 22:00", "error");
-      return;
-    }
-
-    const res = await fetch("/api/reserve", {
+    const response = await fetch("/api/reserve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
         email,
         date,
-        startTime: fullStart,
-        endTime: fullEnd,
+        startTime: start,
+        endTime: end,
         tableIds: selectedTableIds,
       }),
     });
 
-    const result = await res.json();
+    const result = await response.json();
 
-    if (res.ok) {
-      // only trigger the onSuccess callback; the modal will show notification
+    if (response.ok) {
+      notify("Reservation successful!", "success");
       onSuccess?.();
 
-      // reset form fields
       setName("");
       setEmail("");
-      setDate("");
       setStartTime("");
       setEndTime("");
     } else {
       notify(result.error || "Something went wrong", "error");
     }
-  }
+  };
 
   const selectedTables = tables.filter((table) =>
     selectedTableIds.includes(table.id)
@@ -190,6 +129,7 @@ export default function TableReservationForm({
           onChange={(e) => setName(e.target.value)}
           required
         />
+
         <input
           type="email"
           placeholder="Your Email"
@@ -198,6 +138,7 @@ export default function TableReservationForm({
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+
         <input
           type="date"
           className="w-full border rounded p-2"
@@ -206,55 +147,27 @@ export default function TableReservationForm({
           min={today}
           required
         />
+
         <input
           type="time"
-          className="w-full border rounded p-2"
+          className={`w-full border rounded p-2 ${startTime && !/^[0-2][0-9]:(00|15|30|45)$/.test(startTime) ? "border-red-500" : ""} `}
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
-          // Rounding only if test mode is off
-          onBlur={(e) => {
-            if (!TEST_ALLOW_ANY_TIME) {
-              const [h, m] = e.target.value.split(":").map(Number);
-              let minutes = Math.round(m / 15) * 15;
-              let hours = h;
-              if (minutes === 60) {
-                minutes = 0;
-                hours += 1;
-              }
-              setStartTime(
-                `${hours.toString().padStart(2, "0")}:${minutes
-                  .toString()
-                  .padStart(2, "0")}`
-              );
-            }
-          }}
-          min={minTime ? formatTime(minTime) : undefined}
-          max={maxTime ? formatTime(maxTime) : undefined}
+          min="10:00"
+          max="23:45"
+          step="900" // 15 minutes = 900 seconds
           required
+         
         />
+
         <input
           type="time"
-          className="w-full border rounded p-2"
+          className={`w-full border rounded p-2 ${endTime && !/^[0-2][0-9]:(00|15|30|45)$/.test(endTime) ? "border-red-500" : ""} `}
           value={endTime}
           onChange={(e) => setEndTime(e.target.value)}
-          onBlur={(e) => {
-            if (!TEST_ALLOW_ANY_TIME) {
-              const [h, m] = e.target.value.split(":").map(Number);
-              let minutes = Math.round(m / 15) * 15;
-              let hours = h;
-              if (minutes === 60) {
-                minutes = 0;
-                hours += 1;
-              }
-              setEndTime(
-                `${hours.toString().padStart(2, "0")}:${minutes
-                  .toString()
-                  .padStart(2, "0")}`
-              );
-            }
-          }}
-          min={minTime ? formatTime(minTime) : undefined}
-          max={maxTime ? formatTime(maxTime) : undefined}
+          min="10:00"
+          max="22:00"
+          step="900"
           required
         />
 

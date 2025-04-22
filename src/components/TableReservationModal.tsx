@@ -161,12 +161,6 @@ export default function TableReservationModal({
         </DialogHeader>
 
         <TableReservationForm
-          suggestedStartTime={
-            currentReservation ? new Date(currentReservation.endTime) : null
-          }
-          isTableReserved={!!currentReservation}
-          minTime={minTime}
-          maxTime={maxTime}
           selectedDate={selectedDate}
           onSuccess={() => {
             onClose?.();
