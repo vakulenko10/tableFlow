@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice";
 import useSocketListener from "@/app/hooks/useSocketListener";
@@ -25,6 +25,19 @@ function useIsMobile() {
   return isMobile;
 }
 
+// Hook for extra small screens (below 425px)
+function useIsExtraSmall() {
+  const [isExtraSmall, setIsExtraSmall] = useState(false);
+
+  useEffect(() => {
+    const checkExtraSmall = () => setIsExtraSmall(window.innerWidth < 425);
+    checkExtraSmall();
+    window.addEventListener("resize", checkExtraSmall);
+    return () => window.removeEventListener("resize", checkExtraSmall);
+  }, []);
+
+  return isExtraSmall;
+}
 // ===================================
 const ORIGINAL_WIDTH = 1000;
 const ORIGINAL_HEIGHT = 800;
@@ -51,15 +64,13 @@ export default function TableFloor() {
   const [svgHeight, setSvgHeight] = useState(ORIGINAL_HEIGHT);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile(); // ⬅️ Новый хук
-
-
+  const isMobile = useIsMobile();
+  const isExtraSmall = useIsExtraSmall();
 
   useEffect(() => {
     dispatch(fetchTables());
   }, [dispatch]);
-   
-  console.log("tables: ",tables)
+  console.log("tables: ", tables);
 
   useEffect(() => {
     if (tables.length > 0) {
@@ -82,39 +93,57 @@ export default function TableFloor() {
     : null;
 
   return (
-    <div className="w-full overflow-auto border rounded-lg bg-white shadow-md p-4 space-y-4">
-      <h2 className="text-xl font-semibold text-center">Floor Map</h2>
+    <div className="w-full overflow-auto border rounded-lg bg-gradient-to-b bg-white shadow-md p-4 space-y-4">
+      <div
+        className={`border rounded-lg p-2 bg-blue-50 ${
+          isExtraSmall
+            ? "flex flex-col items-center"
+            : "flex justify-between items-center"
+        } mb-4`}
+      >
+        <h2 className={`text-xl font-semibold ${isExtraSmall ? "mb-2" : ""}`}>
+          Floor Map
+        </h2>
 
-      <div className="flex gap-4 text-sm mb-2 justify-center flex-wrap sm:flex-nowrap">
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-blue-500 rounded" /> Available
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-red-500 rounded" /> Reserved
-        </div>
-      </div>
+        <div
+          className={`flex items-center ${
+            isExtraSmall ? "justify-center" : ""
+          } gap-4`}
+        >
+          <div className="flex items-center gap-1">
+            <span>Available</span>
+            <div className="w-4 h-4 bg-blue-500 rounded" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span>Reserved</span>
+            <div className="w-4 h-4 bg-red-500 rounded" />
+          </div>
 
-      <div className="hidden md:flex justify-center gap-4 mb-4">
-        <button
-          onClick={() => setViewMode("map")}
-          className={`px-4 py-2 rounded font-medium ${
-            viewMode === "map"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
-        >
-          Map View
-        </button>
-        <button
-          onClick={() => setViewMode("list")}
-          className={`px-4 py-2 rounded font-medium ${
-            viewMode === "list"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
-        >
-          List View
-        </button>
+          {!isMobile && (
+            <div className="hidden md:flex border rounded overflow-hidden">
+              <button
+                onClick={() => setViewMode("map")}
+                className={`px-3 py-1 ${
+                  viewMode === "map"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-800"
+                }`}
+              >
+                Map
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-3 py-1 ${
+                  viewMode === "list"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-800"
+                }`}
+              >
+                List
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div ref={containerRef}>
@@ -154,7 +183,6 @@ export default function TableFloor() {
               height={svgHeight}
               fill="url(#woodTexture)"
             />
-            
             {tables.map((table) => (
               <TableItem
                 key={table.id}
@@ -188,20 +216,19 @@ export default function TableFloor() {
 
         {(viewMode === "list" || isMobile) && (
           <div className="w-full max-w-[700px] mx-auto space-y-2 mt-6">
-           {tables
-  .filter((t) => t.capacity > 0)
-  .map((table) => (
-    <TableListItem
-      key={table.id}
-      table={table}
-      onClick={handleTableSelection}
-    />
-))}
+            {tables
+              .filter((t) => t.capacity > 0)
+              .map((table) => (
+                <TableListItem
+                  key={table.id}
+                  table={table}
+                  onClick={handleTableSelection}
+                />
+              ))}
           </div>
         )}
       </div>
 
-     
       <TableReservationModal
         selectedTableId={selectedTableId}
         onClose={() => setSelectedTableId(null)}

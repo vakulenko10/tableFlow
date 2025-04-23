@@ -40,7 +40,7 @@ export default function ConfirmPage() {
 
   // Shared layout classes
   const pageWrapper =
-    "min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white p-6";
+    "min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 p-6";
   const card =
     "bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center space-y-4";
   const icon = "text-6xl";
