@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
 
   const reservation = await prisma.reservation.findUnique({
     where: { token },
+    include: {
+      tables: true, // Include related tables
+    },
   });
 
   if (!reservation) {
@@ -43,27 +46,23 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // 🔥 WebSocket broadcast after confirmation
+  // 🔥 Notify only affected tables via /update-table
   try {
-    const tables = await prisma.table.findMany({
-      include: {
-        reservedIn: {
-          include: {
-            reservation: true,
+    for (const tableRef of reservation.tables) {
+      const table = await prisma.table.findUnique({
+        where: { id: tableRef.tableId },
+        include: {
+          reservedIn: {
+            include: {
+              reservation: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const formattedTables = tables.map((table) => {
-      const reservations = table.reservedIn.map((rt) => rt.reservation);
-      const isReserved = reservations.some((res) =>
-        res.status !== "CANCELLED" &&
-        res.startTime <= now &&
-        res.endTime >= now
-      );
+      if (!table) continue;
 
-      return {
+      const formattedTable = {
         id: table.id,
         label: table.label,
         x: table.x,
@@ -71,21 +70,20 @@ export async function POST(request: NextRequest) {
         width: table.width,
         height: table.height,
         capacity: table.capacity,
-        reserved: isReserved,
-        reservations: reservations.map((res) => ({
-          id: res.id,
-          startTime: res.startTime,
-          endTime: res.endTime,
-          status: res.status,
+        reservations: table.reservedIn.map((rt) => ({
+          id: rt.reservation.id,
+          startTime: rt.reservation.startTime,
+          endTime: rt.reservation.endTime,
+          status: rt.reservation.status,
         })),
       };
-    });
 
-    await fetch(`${SOCKET_URL}/broadcast`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formattedTables),
-    });
+      await fetch(`${SOCKET_URL}/update-table`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formattedTable),
+      });
+    }
   } catch (error) {
     console.warn("WebSocket update failed:", error);
   }
