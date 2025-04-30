@@ -57,6 +57,7 @@ export async function GET() {
       width: table.width,
       height: table.height,
       capacity: table.capacity,
+      image: table.image,
       reserved: activeNow,
       reservations: tableReservations,
     };

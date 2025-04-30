@@ -15,6 +15,7 @@ export interface Reservation {
     height: number;
     capacity: number;
     reserved: boolean;
+    image: string;
     reservations: Reservation[];
   }
   

@@ -15,6 +15,7 @@ model Table {
   width      Int
   height     Int
   capacity   Int
+  image      String?            
   reservedIn ReservationTable[]
 }
 
@@ -22,6 +23,7 @@ model Reservation {
   id          String              @id @default(cuid())
   name        String
   email       String
+  phone       String?
   token       String              @unique
   date        DateTime
   startTime   DateTime

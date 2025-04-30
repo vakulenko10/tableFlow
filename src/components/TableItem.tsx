@@ -11,28 +11,12 @@ interface Props {
   table: Table;
 }
 
-const tableImages: Record<string, string> = {
-  T1: "/images/photo1.jpg",
-  T2: "/images/photo1.jpg",
-  T3: "/images/photo1.jpg",
-  T4: "/images/photo1.jpg",
-  T5: "/images/photo1.jpg",
-  T6: "/images/photo1.jpg",
-  T7: "/images/photo1.jpg",
-  T8: "/images/photo1.jpg",
-  T9: "/images/photo1.jpg",
-  T10: "/images/photo1.jpg",
-};
-
 export const TableItem = React.memo(
   function TableItem({ table }: Props) {
-   
     const dispatch = useAppDispatch();
     const isInteractive = !["BAR2", "BAR4", "KIDS"].includes(table.label);
     const [status, setStatus] = useState<"reserved" | "recentPending" | "free">("free");
     const [isHovered, setIsHovered] = useState(false);
-
-    // console.log(`🔄 TableItem ${table.label} rendered with data: ${JSON.stringify(table)}`); 
 
     const [open, setOpen] = useState(false);
 
@@ -144,7 +128,7 @@ export const TableItem = React.memo(
           </text>
         </g>
 
-        {isHovered && tableImages[table.label] && (
+        {isHovered && (
           <foreignObject
             x={table.x + table.width + 10}
             y={table.y}
@@ -153,7 +137,7 @@ export const TableItem = React.memo(
           >
             <div className="w-full h-full flex items-center justify-center bg-white border border-gray-300 rounded shadow-md overflow-hidden">
               <Image
-                src={tableImages[table.label]}
+                src={table.image}
                 alt={`Table ${table.label}`}
                 className="w-full h-full object-cover"
                 fill
