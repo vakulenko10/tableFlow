@@ -32,7 +32,7 @@ export const TableItem = React.memo(
     const [status, setStatus] = useState<"reserved" | "recentPending" | "free">("free");
     const [isHovered, setIsHovered] = useState(false);
 
-    console.log(`🔄 TableItem ${table.label} rendered with data: ${JSON.stringify(table)}`); 
+    // console.log(`🔄 TableItem ${table.label} rendered with data: ${JSON.stringify(table)}`); 
 
     const [open, setOpen] = useState(false);
 
