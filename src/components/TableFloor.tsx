@@ -23,7 +23,6 @@ export default function TableFloor() {
     shallowEqual
   );
   const loading = useSelector((state: RootState) => state.tables.loading);
-  // const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [svgHeight, setSvgHeight] = useState(ORIGINAL_HEIGHT);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,10 +45,6 @@ export default function TableFloor() {
   if (loading) {
     return <p className="text-center text-gray-600">Loading tables...</p>;
   }
-  // const handleTableSelection = (tableId: string) => {
-  //   setSelectedTableId(tableId);
-  //   dispatch(setSelectedTableIds([tableId]));
-  // };
   return (
     <div className="w-full overflow-auto border rounded-lg bg-white shadow-md p-4 space-y-4">
       <h2 className="text-xl font-semibold text-center">Floor Map</h2>
@@ -141,7 +136,6 @@ export default function TableFloor() {
     <TableListItem
       key={table.id}
       table={table}
-      onClick={handleTableSelection}
     />
 ))}
           </div>
