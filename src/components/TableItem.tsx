@@ -147,7 +147,7 @@ export const TableItem = React.memo(
         )}
         
         <TableReservationModal
-          selectedTableId={open ? table.id : null}
+          selectedTable={open ? table : null}
           onClose={() => setOpen(false)}
         />
       </>

@@ -8,29 +8,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import TableReservationForm from "./TableReservation";
-import { useSelector } from "react-redux";
 import { useAppDispatch } from "@/store/hooks";
 import { setSelectedTableIds } from "@/store/slices/tableSlice";
-import { RootState } from "@/store";
 import { useNotification } from "@/app/hooks/useNotification";
+import { Table } from "@/types/Table";
+import Image from "next/image";
 
 interface TableReservationModalProps {
-  selectedTableId: string | null;
+  selectedTable: Table | null;
   onClose?: () => void;
 }
 
 export default function TableReservationModal({
-  selectedTableId,
+  selectedTable,
   onClose,
 }: TableReservationModalProps) {
-  const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTable);
   const dispatch = useAppDispatch();
-  const { tables } = useSelector((state: RootState) => state.tables);
   const { notify } = useNotification();
-
-  const selectedTable = selectedTableId
-    ? tables.find((t) => t.id === selectedTableId)
-    : null;
 
   const today = new Date();
   const selectedDateString = today.toISOString().split("T")[0];
@@ -90,11 +85,11 @@ export default function TableReservationModal({
   };
 
   useEffect(() => {
-    setDialogOpen(!!selectedTableId);
-    if (selectedTableId) {
-      dispatch(setSelectedTableIds([selectedTableId]));
+    setDialogOpen(!!selectedTable);
+    if (selectedTable?.id) {
+      dispatch(setSelectedTableIds([selectedTable.id]));
     }
-  }, [selectedTableId, dispatch]);
+  }, [selectedTable, dispatch]);
 
   const handleOpenChange = (isOpen: boolean) => {
     setDialogOpen(isOpen);
@@ -113,18 +108,18 @@ export default function TableReservationModal({
               : "Table Reservation"}
           </DialogTitle>
 
-          {/* {selectedTable?.label && tableImages[selectedTable.label] && (
+          {selectedTable?.label && (
             <div className="block sm:hidden mb-4">
               <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow relative">
                 <Image
-                  src={tableImages[selectedTable.label]}
+                  src={selectedTable.image}
                   alt={`Table ${selectedTable.label}`}
                   className="w-full h-full object-cover"
                   fill
                 />
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Show info about current or next reservation */}
           {currentReservation && (
