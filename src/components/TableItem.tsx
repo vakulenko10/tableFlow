@@ -26,20 +26,24 @@ const tableImages: Record<string, string> = {
 
 export const TableItem = React.memo(
   function TableItem({ table }: Props) {
+   
     const dispatch = useAppDispatch();
     const isInteractive = !["BAR2", "BAR4", "KIDS"].includes(table.label);
     const [status, setStatus] = useState<"reserved" | "recentPending" | "free">("free");
     const [isHovered, setIsHovered] = useState(false);
-    const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
-    const handleTableSelection = (tableId: string) => {
-    if (!isInteractive){
-      console.log('this space  cannot be booked')
-       return;
-    }
-    else{
-    setSelectedTableId(tableId);
-    dispatch(setSelectedTableIds([tableId]));}
-  };
+
+    console.log(`🔄 TableItem ${table.label} rendered with data: ${JSON.stringify(table)}`); 
+
+    const [open, setOpen] = useState(false);
+
+    const handleTableSelection = () => {
+      if (!isInteractive) {
+        console.log("This space cannot be booked");
+        return;
+      }
+      setOpen(true);
+      dispatch(setSelectedTableIds([table.id]));
+    };
     useEffect(() => {
       const updateStatus = () => {
         const now = new Date();
@@ -101,7 +105,7 @@ export const TableItem = React.memo(
     return (
       <>
         <g
-          onClick={()=>handleTableSelection(table.id)}
+          onClick={handleTableSelection}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className="cursor-pointer transition-transform duration-300 ease-in-out hover:-translate-y-1"
@@ -158,19 +162,16 @@ export const TableItem = React.memo(
           </foreignObject>
         )}
         
-      <TableReservationModal
-        selectedTableId={selectedTableId}
-        onClose={() => setSelectedTableId(null)}
-      />
+        <TableReservationModal
+          selectedTableId={open ? table.id : null}
+          onClose={() => setOpen(false)}
+        />
       </>
     );
   },
   (prevProps, nextProps) => {
-    return (
-      prevProps.table.id === nextProps.table.id &&
-      prevProps.table.capacity === nextProps.table.capacity &&
-      JSON.stringify(prevProps.table.reservations) ===
-        JSON.stringify(nextProps.table.reservations)
-    );
+  return (
+    prevProps.table === nextProps.table
+  );
   }
 );

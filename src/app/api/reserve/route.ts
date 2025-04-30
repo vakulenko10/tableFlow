@@ -37,8 +37,6 @@
     const token = randomUUID();
 
     try {
-      // Check for conflicts
-     // Check for conflicts
     const conflictingReservations = await prisma.reservationTable.findMany({
       where: {
         tableId: { in: tableIds },
@@ -116,6 +114,7 @@
             startTime: res.startTime,
             endTime: res.endTime,
             status: res.status,
+            createdAt: res.createdAt
           })),
         };
       });
