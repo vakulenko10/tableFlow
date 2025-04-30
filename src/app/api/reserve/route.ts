@@ -122,11 +122,17 @@
 
       // Send to WebSocket server
       try {
-        await fetch(`${SOCKET_URL}/broadcast`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formattedTables),
-        });
+        for (const table of formattedTables.filter((t) => tableIds.includes(t.id))) {
+          try {
+            await fetch(`${SOCKET_URL}/update-table`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(table),
+            });
+          } catch (socketError) {
+            console.warn(`WebSocket update failed for table ${table.id}:`, socketError);
+          }
+        }
       } catch (socketError) {
         console.warn("WebSocket server not reachable:", socketError);
       }

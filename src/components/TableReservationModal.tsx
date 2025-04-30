@@ -25,7 +25,6 @@ export default function TableReservationModal({
   selectedTableId,
   onClose,
 }: TableReservationModalProps) {
-  useSocketListener();
   const [dialogOpen, setDialogOpen] = useState<boolean>(!!selectedTableId);
   const dispatch = useAppDispatch();
   const { tables } = useSelector((state: RootState) => state.tables);

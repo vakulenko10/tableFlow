@@ -55,6 +55,13 @@ const tableSlice = createSlice({
         state.selectedTableIds.push(tableId);
       }
     },
+    updateTable: (state, action) => {
+      const updated = action.payload;
+      const index = state.tables.findIndex((t) => t.id === updated.id);
+      if (index !== -1) {
+        state.tables[index] = updated;
+      }
+    },
 
     /**
      * Action to unselect a single table
@@ -107,6 +114,7 @@ const tableSlice = createSlice({
 
 export const {
   selectTable,
+  updateTable,
   unselectTable,
   setSelectedTableIds,
   clearSelectedTables,

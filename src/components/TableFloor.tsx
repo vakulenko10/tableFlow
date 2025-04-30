@@ -6,58 +6,31 @@ import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables, setSelectedTableIds } from "@/store/slices/tableSlice";
 import useSocketListener from "@/app/hooks/useSocketListener";
-import TableItem from "./TableItem";
 import TableListItem from "./TableListItem";
 import TableReservationModal from "./TableReservationModal";
-import Image from "next/image";
+import { TableItem } from "./TableItem";
+import { shallowEqual } from "react-redux";
+import useIsMobile from "@/app/hooks/useIsMobile";
 
-// ======= ХУК ДЛЯ МОБИЛЬНОГО =========
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  return isMobile;
-}
-
-// ===================================
 const ORIGINAL_WIDTH = 1000;
 const ORIGINAL_HEIGHT = 800;
-
-const tableImages: Record<string, string> = {
-  T1: "/images/photo1.jpg",
-  T2: "/images/photo1.jpg",
-  T3: "/images/photo1.jpg",
-  T4: "/images/photo1.jpg",
-  T5: "/images/photo1.jpg",
-  T6: "/images/photo1.jpg",
-  T7: "/images/photo1.jpg",
-  T8: "/images/photo1.jpg",
-  T9: "/images/photo1.jpg",
-  T10: "/images/photo1.jpg",
-};
 
 export default function TableFloor() {
   useSocketListener();
   const dispatch = useAppDispatch();
-  const { tables, loading } = useSelector((state: RootState) => state.tables);
-  const [hoveredTableId, setHoveredTableId] = useState<string | null>(null);
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const tables = useSelector(
+    (state: RootState) => state.tables.tables,
+    shallowEqual
+  );
+  const loading = useSelector((state: RootState) => state.tables.loading);
+  // const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [svgHeight, setSvgHeight] = useState(ORIGINAL_HEIGHT);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile(); // ⬅️ Новый хук
-
-
-
+  const isMobile = useIsMobile();
   useEffect(() => {
     dispatch(fetchTables());
-  }, [dispatch]);
+  }, []);
    
   console.log("tables: ",tables)
 
@@ -68,19 +41,15 @@ export default function TableFloor() {
     }
   }, [tables]);
 
-  const handleTableSelection = (tableId: string) => {
-    setSelectedTableId(tableId);
-    dispatch(setSelectedTableIds([tableId]));
-  };
+ 
 
   if (loading) {
     return <p className="text-center text-gray-600">Loading tables...</p>;
   }
-
-  const hoveredTable = hoveredTableId
-    ? tables.find((t) => t.id === hoveredTableId)
-    : null;
-
+  // const handleTableSelection = (tableId: string) => {
+  //   setSelectedTableId(tableId);
+  //   dispatch(setSelectedTableIds([tableId]));
+  // };
   return (
     <div className="w-full overflow-auto border rounded-lg bg-white shadow-md p-4 space-y-4">
       <h2 className="text-xl font-semibold text-center">Floor Map</h2>
@@ -159,34 +128,12 @@ export default function TableFloor() {
               <TableItem
                 key={table.id}
                 table={table}
-                onHover={setHoveredTableId}
-                onClick={handleTableSelection}
               />
             ))}
-
-            {hoveredTable &&
-              hoveredTableId &&
-              tableImages[hoveredTable.label] && (
-                <foreignObject
-                  x={hoveredTable.x + hoveredTable.width + 10}
-                  y={hoveredTable.y}
-                  width={300}
-                  height={200}
-                >
-                  <div className="w-full h-full flex items-center justify-center bg-white border border-gray-300 rounded shadow-md overflow-hidden">
-                    <Image
-                      src={tableImages[hoveredTable.label]}
-                      alt={`Table ${hoveredTable.label}`}
-                      className="w-full h-full object-cover"
-                      fill
-                    />
-                  </div>
-                </foreignObject>
-              )}
           </svg>
         )}
 
-        {(viewMode === "list" || isMobile) && (
+        {/* {(viewMode === "list" || isMobile) && (
           <div className="w-full max-w-[700px] mx-auto space-y-2 mt-6">
            {tables
   .filter((t) => t.capacity > 0)
@@ -198,14 +145,8 @@ export default function TableFloor() {
     />
 ))}
           </div>
-        )}
+        )} */}
       </div>
-
-     
-      <TableReservationModal
-        selectedTableId={selectedTableId}
-        onClose={() => setSelectedTableId(null)}
-      />
     </div>
   );
 }
