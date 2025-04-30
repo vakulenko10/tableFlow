@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchTables } from "@/store/slices/tableSlice";
-import useSocketListener from "@/app/hooks/useSocketListener";
 import { useNotification } from "@/app/hooks/useNotification";
 
 interface TableReservationFormProps {
@@ -17,7 +16,6 @@ export default function TableReservationForm({
   selectedDate,
   onSuccess,
 }: TableReservationFormProps) {
-  useSocketListener();
 
   const dispatch = useAppDispatch();
   const { notify } = useNotification();

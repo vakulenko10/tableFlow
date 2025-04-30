@@ -27,12 +27,18 @@ const tableImages: Record<string, string> = {
 export const TableItem = React.memo(
   function TableItem({ table }: Props) {
     const dispatch = useAppDispatch();
+    const isInteractive = !["BAR2", "BAR4", "KIDS"].includes(table.label);
     const [status, setStatus] = useState<"reserved" | "recentPending" | "free">("free");
     const [isHovered, setIsHovered] = useState(false);
     const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
     const handleTableSelection = (tableId: string) => {
+    if (!isInteractive){
+      console.log('this space  cannot be booked')
+       return;
+    }
+    else{
     setSelectedTableId(tableId);
-    dispatch(setSelectedTableIds([tableId]));
+    dispatch(setSelectedTableIds([tableId]));}
   };
     useEffect(() => {
       const updateStatus = () => {

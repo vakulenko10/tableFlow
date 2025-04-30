@@ -13,8 +13,6 @@ import { useAppDispatch } from "@/store/hooks";
 import { setSelectedTableIds } from "@/store/slices/tableSlice";
 import { RootState } from "@/store";
 import { useNotification } from "@/app/hooks/useNotification";
-import useSocketListener from "@/app/hooks/useSocketListener";
-import Image from "next/image";
 
 interface TableReservationModalProps {
   selectedTableId: string | null;
