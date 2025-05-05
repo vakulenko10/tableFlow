@@ -112,7 +112,7 @@ export default function TableReservationModal({
             <div className="block sm:hidden mb-4">
               <div className="w-full h-48 rounded overflow-hidden border border-gray-200 shadow relative">
                 <Image
-                  src={selectedTable.image}
+                  src={selectedTable.image?selectedTable.image:'/images/photo1.jpg'}
                   alt={`Table ${selectedTable.label}`}
                   className="w-full h-full object-cover"
                   fill

@@ -137,7 +137,7 @@ export const TableItem = React.memo(
           >
             <div className="w-full h-full flex items-center justify-center bg-white border border-gray-300 rounded shadow-md overflow-hidden">
               <Image
-                src={table.image}
+                src={table.image?table.image:'/images/photo1.jpg'}
                 alt={`Table ${table.label}`}
                 className="w-full h-full object-cover"
                 fill

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import useSocketListener from "@/app/hooks/useSocketListener";
 import { useNotification } from "@/app/hooks/useNotification";
 import {
@@ -41,12 +41,13 @@ export default function DashboardPage() {
 
   const { notify } = useNotification();
   useSocketListener();
-
+  const router = useRouter();
   useEffect(() => {
+    console.log(status)
     if (status === "unauthenticated") {
-      redirect("/api/auth/signin");
+      router.push("/api/auth/signin");
     }
-  }, [status]);
+  }, [status, router]);
 
   useEffect(() => {
     async function fetchReservations() {
@@ -122,7 +123,7 @@ export default function DashboardPage() {
     return matchesStatus && matchesTable && matchesTime;
   });
 
-  if (status !== "authenticated") return null;
+  if (status !== "authenticated") return <>not authenticated</>;
 
   return (
     <div className="p-8">
