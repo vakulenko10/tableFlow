@@ -4,17 +4,12 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import useSocketListener from "@/app/hooks/useSocketListener";
-import { useNotification } from "@/app/hooks/useNotification";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import ReservationItem from "./ReservationItem";
 
-interface Reservation {
+export interface ReservationItem {
   id: string;
   name: string;
   email: string;
@@ -30,16 +25,15 @@ interface Reservation {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [reservations, setReservations] = useState<ReservationItem[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<Reservation>>({});
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [tableFilter, setTableFilter] = useState<string>("");
   const [timeFilter, setTimeFilter] = useState<string>("");
+  const { tables } = useSelector(
+    (state: RootState) => state.tables
+  );
 
-  const { notify } = useNotification();
   useSocketListener();
   const router = useRouter();
   useEffect(() => {
@@ -56,64 +50,12 @@ export default function DashboardPage() {
       const data = await res.json();
       setReservations(data);
     }
-
+    console.log('refetching the data because of the tables redux change')
     fetchReservations();
-  }, [selectedDate]);
+  }, [selectedDate, tables]);
 
-  const closeModal = () => {
-    setSelectedReservation(null);
-    setIsEditing(false);
-    setFormData({});
-  };
-
-  const deleteReservation = async (id: string) => {
-    const res = await fetch(`/api/dashboard/reservations?id=${id}`, { method: "DELETE" });
-    if (res.ok) {
-      notify("Reservation deleted successfully", "success");
-      setReservations((prev) => prev.filter((r) => r.id !== id));
-    } else {
-      notify("Failed to delete reservation", "error");
-    }
-    closeModal();
-  };
-
-  const cancelReservation = async (id: string) => {
-    const res = await fetch(`/api/dashboard/reservations/cancel`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-  
-    if (res.ok) {
-      notify("Reservation cancelled", "success");
-      setReservations((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: "CANCELLED" } : r))
-      );
-    } else {
-      notify("Failed to cancel reservation", "error");
-    }
-    closeModal();
-  };
-  const updateReservation = async () => {
-    if (!selectedReservation) return;
-    const res = await fetch(`/api/dashboard/reservations?id=${selectedReservation.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    if (res.ok) {
-      notify("Reservation updated successfully", "success");
-      setReservations((prev) =>
-        prev.map((r) => (r.id === selectedReservation.id ? { ...r, ...formData } as Reservation : r))
-      );
-    } else {
-      notify("Failed to update reservation", "error");
-    }
-    closeModal();
-  };
-
-  const handleInputChange = (key: keyof Reservation, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const handleDeleteReservation = (id: string) => {
+    setReservations((prev) => prev.filter((r) => r.id !== id));
   };
 
   const filteredReservations = reservations.filter((res) => {
@@ -211,122 +153,12 @@ export default function DashboardPage() {
         </thead>
         <tbody>
           {filteredReservations.map((res) => (
-            <tr
-              key={res.id}
-              className="cursor-pointer hover:bg-gray-50"
-              onClick={() => {
-                setSelectedReservation(res);
-                setFormData(res);
-              }}
-            >
-              <td className="border px-4 py-2">{res.name}</td>
-              <td className="border px-4 py-2">{res.email}</td>
-              <td className="border px-4 py-2">
-                {new Date(res.date).toLocaleDateString()}
-              </td>
-              <td className="border px-4 py-2">
-                {new Date(res.startTime).toLocaleTimeString()} -{" "}
-                {new Date(res.endTime).toLocaleTimeString()}
-              </td>
-              <td className="border px-4 py-2">{res.status}</td>
-              <td className="border px-4 py-2">
-                {res.tables.map((t) => t.table.label).join(", ")}
-              </td>
-              <td className="border px-4 py-2">
-                {new Date(res.createdAt).toLocaleString()}
-              </td>
-            </tr>
+            <ReservationItem key={res.id} reservation={res} setReservations={setReservations} />
           ))}
         </tbody>
       </table>
 
-      <Dialog open={!!selectedReservation} onOpenChange={closeModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reservation Details</DialogTitle>
-          </DialogHeader>
-          {selectedReservation && (
-            <div className="space-y-2">
-              {(["name", "email"] as const).map((field) => (
-                <div key={field}>
-                  <label className="block text-sm font-medium capitalize">
-                    {field}:
-                  </label>
-                  <input
-                    value={formData[field] ?? ""}
-                    disabled={!isEditing}
-                    onChange={(e) => handleInputChange(field, e.target.value)}
-                    className={`border px-2 py-1 rounded w-full ${
-                      isEditing ? "text-black" : "text-gray-500"
-                    }`}
-                  />
-                </div>
-              ))}
-              <div>
-                <label className="block text-sm font-medium">Date:</label>
-                <input
-                  type="date"
-                  value={formData.date ?? ""}
-                  disabled={!isEditing}
-                  onChange={(e) => handleInputChange("date", e.target.value)}
-                  className={`border px-2 py-1 rounded w-full ${
-                    isEditing ? "text-black" : "text-gray-500"
-                  }`}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Start Time:</label>
-                <input
-                  type="datetime-local"
-                  value={formData.startTime ?? ""}
-                  disabled={!isEditing}
-                  onChange={(e) =>
-                    handleInputChange("startTime", e.target.value)
-                  }
-                  className={`border px-2 py-1 rounded w-full ${
-                    isEditing ? "text-black" : "text-gray-500"
-                  }`}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">End Time:</label>
-                <input
-                  type="datetime-local"
-                  value={formData.endTime ?? ""}
-                  disabled={!isEditing}
-                  onChange={(e) => handleInputChange("endTime", e.target.value)}
-                  className={`border px-2 py-1 rounded w-full ${
-                    isEditing ? "text-black" : "text-gray-500"
-                  }`}
-                />
-              </div>
-
-              <DialogFooter className="mt-4 space-x-2">
-                {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                ) : (
-                  <Button onClick={updateReservation}>Save</Button>
-                )}
-                <Button
-                  onClick={() => cancelReservation(selectedReservation.id)}
-                  variant="destructive"
-                >
-                  Cancel Reservation
-                </Button>
-                <Button
-                  onClick={() => deleteReservation(selectedReservation.id)}
-                  variant="destructive"
-                >
-                  Delete
-                </Button>
-                <Button variant="outline" onClick={closeModal}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      
     </div>
   );
 }
