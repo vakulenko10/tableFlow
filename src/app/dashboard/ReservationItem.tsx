@@ -9,10 +9,8 @@ interface ReservationItemProps {
 const ReservationItem = ({reservation, setReservations}:ReservationItemProps) => {
    
     const [isOpen, setIsOpen] = useState(false)
-    const closeModal = () => {
-            setIsOpen(false)
-          };
   return (
+    <>
     <tr
     key={reservation.id}
     className="cursor-pointer hover:bg-gray-50"
@@ -36,8 +34,10 @@ const ReservationItem = ({reservation, setReservations}:ReservationItemProps) =>
     <td className="border px-4 py-2">
       {new Date(reservation.createdAt).toLocaleString()}
     </td>
-    {isOpen&&<ReservationModal reservation={reservation} open={isOpen} closeModal={closeModal}  setReservations={setReservations}/>}
+    
   </tr>
+  <ReservationModal reservation={isOpen?reservation:null} open={isOpen} closeModal={()=>setIsOpen(false)}  setReservations={setReservations}/>
+  </>
   )
 }
 

@@ -11,18 +11,18 @@ import { ReservationItem } from './page';
 import { Button } from '@/components/ui/button';
 import { useNotification } from '../hooks/useNotification';
 interface ReservationModalProps {
-    reservation: ReservationItem,
+    reservation: ReservationItem|null,
     closeModal: () => void,
     setReservations: React.Dispatch<React.SetStateAction<ReservationItem[]>>
     open: boolean
 }
 const ReservationModal = ({reservation, closeModal, setReservations, open}:ReservationModalProps) => {
-    console.log('reservation.id for reservation modal is:',reservation.id)
+    console.log('reservation.id for reservation modal is:',reservation?.id)
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<ReservationItem>>({});
-
-      const { notify } = useNotification();
+    const { notify } = useNotification();
     const handleCloseModal = () =>{
+        console.log('we are inside handle clos modal function')
         closeModal()
         setFormData({});
         setIsEditing(false);
@@ -55,35 +55,42 @@ const ReservationModal = ({reservation, closeModal, setReservations, open}:Reser
         }
       };
         
-        const updateReservation = async () => {
-          if (!reservation) return;
-          const res = await fetch(`/api/dashboard/reservations?id=${reservation.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-          });
-          if (res.ok) {
-            notify("Reservation updated successfully", "success");
-            setReservations((prev) =>
-              prev.map((r) => (r.id == reservation.id ? { ...r, ...formData } as ReservationItem : r))
-            );
-          } else {
-            notify("Failed to update reservation", "error");
-          }
-          handleCloseModal();
+      const updateReservation = async () => {
+        if (!reservation) return;
+        const res = await fetch(`/api/dashboard/reservations?id=${reservation.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          notify("Reservation updated successfully", "success");
+          setReservations((prev) =>
+            prev.map((r) => (r.id == reservation.id ? { ...r, ...formData } as ReservationItem : r))
+          );
+        } else {
+          notify("Failed to update reservation", "error");
+        }
+        handleCloseModal();
+      };
+      const handleInputChange = (key: keyof ReservationItem, value: string) => {
+          setFormData((prev) => ({ ...prev, [key]: value }));
         };
-        const handleInputChange = (key: keyof ReservationItem, value: string) => {
-            setFormData((prev) => ({ ...prev, [key]: value }));
-          };
 
-          useEffect(() => {
-            if (open && reservation) {
-              setFormData(reservation);
-              setIsEditing(false);
-            }
-          }, [open, reservation]);
+      useEffect(() => {
+        if (open && reservation) {
+          setFormData(reservation);
+          setIsEditing(false);
+        }
+      }, [open, reservation]);
+      const handleOpenChange = (isOpen: boolean) => {
+        console.log('we are inside handleOpenChange function')
+        if (!isOpen) {
+          console.log('condition isOpen==false works, so handleCloseModal function is called')
+          handleCloseModal();
+        }
+      };
   return (
-    <Dialog open={open} onOpenChange={(val) => !val && handleCloseModal()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reservation Details</DialogTitle>
@@ -161,9 +168,6 @@ const ReservationModal = ({reservation, closeModal, setReservations, open}:Reser
                   variant="destructive"
                 >
                   Delete
-                </Button>
-                <Button variant="outline" onClick={handleCloseModal}>
-                  Close
                 </Button>
               </DialogFooter>
             </div>

@@ -50,7 +50,7 @@ export default function DashboardPage() {
       const data = await res.json();
       setReservations(data);
     }
-    console.log('refetching the data because of the tables redux change')
+    // console.log('refetching the data because of the tables redux change')
     fetchReservations();
   }, [selectedDate, tables]);
 
